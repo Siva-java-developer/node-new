@@ -177,4 +177,45 @@ router.post('/login', (req: Request, res: Response, next: NextFunction) =>
 router.get('/profile', protect, (req: Request, res: Response, next: NextFunction) =>
     authController.getProfile(req, res, next));
 
+/**
+ * @swagger
+ * /v1/auth/profile/token:
+ *   post:
+ *     summary: Get user profile from token (for internal API calls)
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: JWT token
+ *     responses:
+ *       200:
+ *         description: User profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/UserResponse'
+ *       401:
+ *         description: Invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/profile/token', (req: Request, res: Response, next: NextFunction) =>
+    authController.getProfileFromToken(req, res, next));
+
 export default router;

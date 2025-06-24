@@ -59,6 +59,9 @@ export enum UserRole {
  *         uid:
  *           type: string
  *           description: Unique identifier
+ *         profileImage:
+ *           type: string
+ *           description: URL or path to user's profile picture
  *         syllabus:
  *           type: string
  */

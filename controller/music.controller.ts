@@ -8,6 +8,7 @@ import path from 'path';
 import UPLOAD_CONFIG from '../config/upload.config';
 import * as mm from 'music-metadata';
 import fs from 'fs';
+import sharp from 'sharp';
 
 /**
  * Controller class for handling Music-related HTTP requests
@@ -312,6 +313,227 @@ export class MusicController {
     });
     
     /**
+     * @swagger
+     * /v1/music/upload/thumbnail:
+     *   post:
+     *     summary: Upload thumbnail image for music
+     *     tags: [Music]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         multipart/form-data:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               imageFile:
+     *                 type: string
+     *                 format: binary
+     *                 description: Image file (JPEG, PNG, GIF, WEBP)
+     *     responses:
+     *       200:
+     *         description: Thumbnail uploaded successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 fileName:
+     *                   type: string
+     *                   example: thumbnail-1234567890.jpg
+     *                 filePath:
+     *                   type: string
+     *                   example: /uploads/Music/thumbnails/thumbnail-1234567890.jpg
+     *                 message:
+     *                   type: string
+     *                   example: Thumbnail uploaded successfully
+     *       400:
+     *         description: Bad request - file too large or invalid format
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    uploadThumbnail = asyncHandler(async (req: Request, res: Response) => {
+        console.log('Thumbnail upload endpoint hit');
+        console.log('Request file:', req.file);
+        
+        if (!req.file) {
+            console.log('No file found in request');
+            res.status(HTTPStatusCode.BadRequest).json({
+                success: false,
+                message: UPLOAD_CONFIG.GENERAL.ERRORS.NO_FILE
+            });
+            return;
+        }
+
+        try {
+            // The file is already saved in the correct directory by the musicThumbnailUpload middleware
+            // We'll just use the original file without processing
+            
+            const fileName = req.file.filename;
+            const filePath = req.file.path;
+            const publicPath = `/uploads/Music/thumbnails/${fileName}`;
+            
+            // Return success response with file information
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                fileName: fileName,
+                filePath: publicPath,
+                message: 'Thumbnail uploaded successfully'
+            });
+        } catch (error: any) {
+            console.error('Error uploading thumbnail:', error);
+            
+            // We won't try to delete the file here to avoid permission errors
+            
+            res.status(HTTPStatusCode.InternalServerError).json({
+                success: false,
+                message: `Error uploading thumbnail: ${error.message}`
+            });
+        }
+    });
+
+    /**
+     * @swagger
+     * /v1/music/thumbnail/{fileName}:
+     *   get:
+     *     summary: Download a music thumbnail
+     *     tags: [Music]
+     *     parameters:
+     *       - in: path
+     *         name: fileName
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: The filename of the thumbnail to download
+     *     responses:
+     *       200:
+     *         description: Thumbnail file
+     *         content:
+     *           image/*:
+     *             schema:
+     *               type: string
+     *               format: binary
+     *       404:
+     *         description: Thumbnail not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    downloadThumbnail = asyncHandler(async (req: Request, res: Response) => {
+        const fileName = req.params.fileName;
+        const filePath = path.join(__dirname, '..', 'uploads', 'Music', 'thumbnails', fileName);
+        
+        try {
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                throw new CustomError('Thumbnail not found', HTTPStatusCode.NotFound);
+            }
+            
+            // Set appropriate content type based on file extension
+            const ext = path.extname(fileName).toLowerCase();
+            let contentType = 'image/jpeg'; // Default
+            
+            if (ext === '.png') contentType = 'image/png';
+            else if (ext === '.gif') contentType = 'image/gif';
+            else if (ext === '.webp') contentType = 'image/webp';
+            
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+            
+            // Stream the file to the response
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(HTTPStatusCode.InternalServerError).json({
+                    success: false,
+                    message: `Error downloading thumbnail: ${error.message}`
+                });
+            }
+        }
+    });
+    
+    /**
+     * @swagger
+     * /v1/music/thumbnail/{fileName}:
+     *   delete:
+     *     summary: Delete a music thumbnail
+     *     tags: [Music]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: fileName
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: The filename of the thumbnail to delete
+     *     responses:
+     *       200:
+     *         description: Thumbnail deleted successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: Thumbnail deleted successfully
+     *       404:
+     *         description: Thumbnail not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    deleteThumbnail = asyncHandler(async (req: Request, res: Response) => {
+        const fileName = req.params.fileName;
+        const filePath = path.join(__dirname, '..', 'uploads', 'Music', 'thumbnails', fileName);
+        
+        try {
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                throw new CustomError('Thumbnail not found', HTTPStatusCode.NotFound);
+            }
+            
+            // Delete the file
+            fs.unlinkSync(filePath);
+            
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                message: 'Thumbnail deleted successfully'
+            });
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(HTTPStatusCode.InternalServerError).json({
+                    success: false,
+                    message: `Error deleting thumbnail: ${error.message}`
+                });
+            }
+        }
+    });
+
+    /**
      * Format duration in seconds to MM:SS or HH:MM:SS format
      */
     private formatDuration(seconds: number): string {
@@ -579,6 +801,111 @@ export class MusicController {
             res.status(error.statusCode || HTTPStatusCode.InternalServerError).json({
                 success: false,
                 message: error.message || 'Failed to download music file'
+            });
+        }
+    });
+
+    /**
+     * @swagger
+     * /v1/music/file/delete/{filename}:
+     *   delete:
+     *     summary: Delete music file by filename
+     *     tags: [Music]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: filename
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Name of the music file to delete (can be partial filename)
+     *     responses:
+     *       200:
+     *         description: Music file deleted successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: Music file deleted successfully
+     *                 deletedFile:
+     *                   type: string
+     *                   example: audioFile-1234567890.mp3
+     *       404:
+     *         description: File not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       500:
+     *         description: Internal server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    deleteMusicFile = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const filename = req.params.filename;
+            
+            if (!filename) {
+                return res.status(HTTPStatusCode.BadRequest).json({
+                    success: false,
+                    message: 'Filename is required'
+                });
+            }
+
+            const uploadDir = path.join(__dirname, '..', 'uploads', 'Music');
+            let fileToDelete: string | null = null;
+            let absoluteFilePath: string;
+
+            // First, try to find the exact file
+            const exactFilePath = path.join(uploadDir, filename);
+            if (fs.existsSync(exactFilePath)) {
+                fileToDelete = filename;
+                absoluteFilePath = exactFilePath;
+            } else {
+                // If exact match not found, search for files containing the filename
+                try {
+                    const files = fs.readdirSync(uploadDir);
+                    const matchingFile = files.find(file => file.includes(filename));
+                    
+                    if (matchingFile) {
+                        fileToDelete = matchingFile;
+                        absoluteFilePath = path.join(uploadDir, matchingFile);
+                    }
+                } catch (error) {
+                    console.error('Error reading upload directory:', error);
+                }
+            }
+
+            if (!fileToDelete) {
+                return res.status(HTTPStatusCode.NotFound).json({
+                    success: false,
+                    message: 'Music file not found'
+                });
+            }
+
+            // Delete the file
+            fs.unlinkSync(absoluteFilePath);
+            
+            return res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                message: 'Music file deleted successfully',
+                deletedFile: fileToDelete
+            });
+
+        } catch (error: any) {
+            console.error('Error deleting music file:', error);
+            return res.status(HTTPStatusCode.InternalServerError).json({
+                success: false,
+                message: 'Failed to delete music file'
             });
         }
     });

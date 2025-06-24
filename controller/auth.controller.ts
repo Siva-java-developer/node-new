@@ -6,9 +6,11 @@ import User from '../model/user.model';
 import config from '../config';
 import CustomError from '../config/custom.error';
 import { HTTPStatusCode } from '../config/enum/http-status.code';
+import AuthService from '../service/auth.service';
 
 @Service()
 class AuthController {
+    constructor(private authService: AuthService) {}
     /**
      * Register a new user
      */
@@ -123,6 +125,29 @@ class AuthController {
             status: true,
             data: user
         });
+    });
+    
+    /**
+     * Get current user profile using token (for internal API calls)
+     */
+    getProfileFromToken = asyncHandler(async (request: Request, response: Response, next: NextFunction) => {
+        const { token } = request.body;
+        
+        if (!token) {
+            throw new CustomError('Token is required', HTTPStatusCode.BadRequest);
+        }
+        
+        try {
+            // Get user from token using auth service
+            const user = await this.authService.getLoggedInUser(token);
+            
+            return response.status(HTTPStatusCode.Ok).json({
+                status: true,
+                data: user
+            });
+        } catch (error) {
+            throw new CustomError('Invalid or expired token', HTTPStatusCode.Unauthorized);
+        }
     });
 
     /**

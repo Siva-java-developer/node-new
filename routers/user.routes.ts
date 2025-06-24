@@ -299,4 +299,8 @@ router.delete('/:id', protect, authorize(UserRole.ADMIN), (req: Request, res: Re
 router.post('/profile-image', protect, imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
     userController.uploadProfileImage(req, res, next));
 
+// Profile image delete
+router.delete('/profile/delete/:filename', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), (req: Request, res: Response, next: NextFunction) =>
+    userController.deleteProfileImage(req, res, next));
+
 export default router

@@ -27,6 +27,9 @@ export class CreateMusicDto {
     @IsString()
     @IsNotEmpty()
     music: string;
+    
+    @IsString()
+    thumbnail?: string;
 }
 
 /**
@@ -50,4 +53,7 @@ export class UpdateMusicDto {
 
     @IsString()
     music?: string;
+    
+    @IsString()
+    thumbnail?: string;
 }

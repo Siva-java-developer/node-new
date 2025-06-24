@@ -42,6 +42,9 @@ import mongoose, { Schema, Model, Document } from "mongoose";
  *         music:
  *           type: string
  *           description: URL or path to the music file
+ *         thumbnail:
+ *           type: string
+ *           description: URL or path to the thumbnail image for the music
  *         duration:
  *           type: number
  *           description: Duration of the music in seconds
@@ -56,6 +59,7 @@ export interface IMusic extends Document {
     class: string;
     lyrics: string;
     music: string;
+    thumbnail?: string;
     duration: number;
     uid: string;
 }
@@ -88,6 +92,10 @@ const MusicSchema = new Schema<IMusic, IMusicModel>({
     music: {
         type: String,
         required: true
+    },
+    thumbnail: {
+        type: String,
+        default: null
     },
     duration: {
         type: Number,

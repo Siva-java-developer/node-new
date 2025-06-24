@@ -149,6 +149,10 @@ const options: swaggerJsdoc.Options = {
             },
             syllabus: {
               type: 'string'
+            },
+            profileImage: {
+              type: 'string',
+              description: 'Path to user\'s profile image'
             }
           }
         },
@@ -191,6 +195,10 @@ const options: swaggerJsdoc.Options = {
             },
             uid: {
               type: 'string'
+            },
+            profileImage: {
+              type: 'string',
+              description: 'Path to user\'s profile image'
             }
           }
         },

@@ -4,6 +4,8 @@ import { Service } from 'typedi'
 import asyncHandler from 'express-async-handler'
 import { HTTPStatusCode } from '../config/enum/http-status.code'
 import UPLOAD_CONFIG from '../config/upload.config'
+import fs from 'fs'
+import path from 'path'
 // import CustomError from '../config/custom.error'
 // import { ErrorMessages } from '../config/enum/error-messages.enum'
 
@@ -94,6 +96,85 @@ class UserController {
          filePath: filePath,
          message: 'Profile image uploaded successfully'
       });
+   });
+
+   /**
+    * @swagger
+    * /v1/users/profile/delete/{filename}:
+    *   delete:
+    *     summary: Delete profile image by filename
+    *     tags: [Users]
+    *     security:
+    *       - bearerAuth: []
+    *     parameters:
+    *       - in: path
+    *         name: filename
+    *         required: true
+    *         schema:
+    *           type: string
+    *         description: Name of the profile image file to delete
+    *     responses:
+    *       200:
+    *         description: Profile image deleted successfully
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 success:
+    *                   type: boolean
+    *                   example: true
+    *                 message:
+    *                   type: string
+    *                   example: Profile image deleted successfully
+    *       404:
+    *         description: File not found
+    *         content:
+    *           application/json:
+    *             schema:
+    *               $ref: '#/components/schemas/Error'
+    *       500:
+    *         description: Internal server error
+    *         content:
+    *           application/json:
+    *             schema:
+    *               $ref: '#/components/schemas/Error'
+    */
+   deleteProfileImage = asyncHandler(async (req: Request, res: Response) => {
+      const filename = req.params.filename;
+      
+      if (!filename) {
+         return res.status(HTTPStatusCode.BadRequest).json({
+            success: false,
+            message: 'Filename is required'
+         });
+      }
+
+      const filePath = path.join(__dirname, '..', 'uploads', 'Profiles', filename);
+      
+      try {
+         // Check if file exists
+         if (!fs.existsSync(filePath)) {
+            return res.status(HTTPStatusCode.NotFound).json({
+               success: false,
+               message: 'Profile image not found'
+            });
+         }
+
+         // Delete the file
+         fs.unlinkSync(filePath);
+         
+         return res.status(HTTPStatusCode.Ok).json({
+            success: true,
+            message: 'Profile image deleted successfully'
+         });
+      } catch (error) {
+         console.error('Error deleting profile image:', error);
+         return res.status(HTTPStatusCode.InternalServerError).json({
+            success: false,
+            message: 'Failed to delete profile image'
+         });
+      }
    });
 }
 

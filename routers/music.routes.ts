@@ -2,7 +2,7 @@ import express from 'express';
 import { MusicController } from '../controller/music.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 import { UserRole } from '../model/user.model';
-import { audioUpload } from '../utils/file-upload.utils';
+import { audioUpload, imageUpload, musicThumbnailUpload } from '../utils/file-upload.utils';
 import { handleUploadErrors } from '../middleware/upload.middleware';
 import path from 'path';
 import UPLOAD_CONFIG from '../config/upload.config';
@@ -44,6 +44,15 @@ router.get('/file/:filename', musicController.getMusicByFilename);
 
 // Download music file - must come before the :id route
 router.get('/download/:filename', musicController.downloadMusicFile);
+
+// Download thumbnail - must come before the :id route
+router.get('/thumbnail/:fileName', musicController.downloadThumbnail);
+
+// Delete music file - must come before the :id route (protected route)
+router.delete('/file/delete/:filename', protect, authorize(UserRole.TEACHER, UserRole.ADMIN), musicController.deleteMusicFile);
+
+// Delete thumbnail - must come before the :id route (protected route)
+router.delete('/thumbnail/:fileName', protect, authorize(UserRole.TEACHER, UserRole.ADMIN), musicController.deleteThumbnail);
 
 // Simple test route for upload path - must come before the :id route
 router.get('/test/upload', (req, res) => {
@@ -122,6 +131,9 @@ router.use(authorize(UserRole.TEACHER, UserRole.ADMIN));
 
 // File upload route - uses environment-specific configuration
 router.post('/upload', audioUpload.single('audioFile'), handleUploadErrors, musicController.uploadMusicFile);
+
+// Thumbnail upload route
+router.post('/upload/thumbnail', musicThumbnailUpload.single('imageFile'), handleUploadErrors, musicController.uploadThumbnail);
 
 // Filter route
 router.post('/filter', musicController.filterMusic);
