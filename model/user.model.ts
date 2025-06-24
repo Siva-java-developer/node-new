@@ -59,6 +59,8 @@ export enum UserRole {
  *         uid:
  *           type: string
  *           description: Unique identifier
+ *         syllabus:
+ *           type: string
  */
 export interface IUser extends Document {
     firstName: string;
@@ -73,6 +75,7 @@ export interface IUser extends Document {
     class?: string;
     uid: string;
     profileImage?: string;
+    syllabus?: string;
     comparePassword(candidatePassword: string): Promise<boolean>;
     fullName(): string;
 }
@@ -136,6 +139,10 @@ const UserSchema = new Schema<IUser, IUserModel>({
         index: { unique: true },
     },
     profileImage: {
+        type: String,
+        required: false
+    },
+    syllabus: {
         type: String,
         required: false
     }

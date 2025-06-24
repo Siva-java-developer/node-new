@@ -27,6 +27,7 @@ class UserController {
          mobileNumber: request.body.mobileNumber,
          role: request.body.role,
          class: request.body.class,
+         syllabus: request.body.syllabus,
          uid: generateUID() 
       };
       
@@ -56,7 +57,8 @@ class UserController {
          gender: request.body.gender,
          mobileNumber: request.body.mobileNumber,
          role: request.body.role,
-         class: request.body.class
+         class: request.body.class,
+         syllabus: request.body.syllabus
       };
       
       await this.userService.updateUser(userId, userData);

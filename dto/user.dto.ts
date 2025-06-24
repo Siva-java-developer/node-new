@@ -11,6 +11,7 @@ export default class UserDTO {
     mobileNumber!: string;
     role!: UserRole;
     class!: string;
+    syllabus!: string;
     
     // Mapper function
     static toResponse(user: IUser): UserDTO {
@@ -25,6 +26,7 @@ export default class UserDTO {
       userDTO.mobileNumber = user.mobileNumber;
       userDTO.role = user.role;
       userDTO.class = user.class;
+      userDTO.syllabus = user.syllabus;
   
       return userDTO;
     }
@@ -39,7 +41,8 @@ export default class UserDTO {
             gender: user.gender,
             mobileNumber: user.mobileNumber,
             role: user.role,
-            class: user.class
+            class: user.class,
+            syllabus: user.syllabus
         };
       }
   }

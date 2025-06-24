@@ -95,6 +95,9 @@ const options: swaggerJsdoc.Options = {
             class: {
               type: 'string'
             },
+            syllabus: {
+              type: 'string'
+            },
             uid: {
               type: 'string',
               description: 'Unique identifier'
@@ -143,6 +146,9 @@ const options: swaggerJsdoc.Options = {
             },
             class: {
               type: 'string'
+            },
+            syllabus: {
+              type: 'string'
             }
           }
         },
@@ -178,6 +184,9 @@ const options: swaggerJsdoc.Options = {
               type: 'string'
             },
             class: {
+              type: 'string'
+            },
+            syllabus: {
               type: 'string'
             },
             uid: {
