@@ -3,6 +3,9 @@ import UserController from '../controller/user.controller'
 import Container from 'typedi';
 import { protect, authorize } from '../middleware/auth.middleware';
 import { UserRole } from '../model/user.model';
+import { imageUpload } from '../utils/file-upload.utils';
+import { handleUploadErrors } from '../middleware/upload.middleware';
+import UPLOAD_CONFIG from '../config/upload.config';
 
 const router = Router()
 const userController = Container.get(UserController);
@@ -241,5 +244,59 @@ router.put('/:id', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), (req: R
  */
 router.delete('/:id', protect, authorize(UserRole.ADMIN), (req: Request, res: Response, next: NextFunction) =>
     userController.deleteUser(req, res, next));
+
+/**
+ * @swagger
+ * /v1/user/profile-image:
+ *   post:
+ *     summary: Upload profile image
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Image file (JPEG, PNG, GIF, WEBP)
+ *     responses:
+ *       200:
+ *         description: Profile image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 fileName:
+ *                   type: string
+ *                 filePath:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *                   example: Profile image uploaded successfully
+ *       400:
+ *         description: Bad request - file too large or invalid format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+// Profile image upload
+router.post('/profile-image', protect, imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
+    userController.uploadProfileImage(req, res, next));
 
 export default router

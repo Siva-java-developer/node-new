@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express'
 import UserService from '../service/user.service'
 import { Service } from 'typedi'
 import asyncHandler from 'express-async-handler'
+import { HTTPStatusCode } from '../config/enum/http-status.code'
+import UPLOAD_CONFIG from '../config/upload.config'
 // import CustomError from '../config/custom.error'
 // import { ErrorMessages } from '../config/enum/error-messages.enum'
 
@@ -65,6 +67,31 @@ class UserController {
       const userId = request.params.id;
       await this.userService.deleteUser(userId);
       return response.json({status: true, message: "User deleted"});
+   });
+
+   /**
+    * Upload a profile image
+    */
+   uploadProfileImage = asyncHandler(async (req: Request, res: Response) => {
+      console.log('Profile upload endpoint hit');
+      console.log('Request file:', req.file);
+      
+      if (!req.file) {
+         return res.status(HTTPStatusCode.BadRequest).json({
+            success: false,
+            message: UPLOAD_CONFIG.GENERAL.ERRORS.NO_FILE
+         });
+      }
+
+      const fileName = req.file.filename;
+      const filePath = `/uploads/Profiles/${fileName}`;
+      
+      return res.status(HTTPStatusCode.Ok).json({
+         success: true,
+         fileName: fileName,
+         filePath: filePath,
+         message: 'Profile image uploaded successfully'
+      });
    });
 }
 

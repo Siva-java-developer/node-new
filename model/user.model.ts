@@ -72,6 +72,7 @@ export interface IUser extends Document {
     role: UserRole;
     class?: string;
     uid: string;
+    profileImage?: string;
     comparePassword(candidatePassword: string): Promise<boolean>;
     fullName(): string;
 }
@@ -133,6 +134,10 @@ const UserSchema = new Schema<IUser, IUserModel>({
         type: String,
         required: true,
         index: { unique: true },
+    },
+    profileImage: {
+        type: String,
+        required: false
     }
 }, {
     timestamps: true // Adds createdAt and updatedAt fields
