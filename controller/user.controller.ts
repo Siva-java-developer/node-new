@@ -289,7 +289,7 @@ class UserController {
 
    /**
     * @swagger
-    * /v1/users/{userId}/favorites:
+    * /v1/user/{userId}/favorites:
     *   get:
     *     summary: Get user's favorite music
     *     tags: [Users]
@@ -343,7 +343,7 @@ class UserController {
 
    /**
     * @swagger
-    * /v1/users/{userId}/favorites:
+    * /v1/user/{userId}/favorites:
     *   post:
     *     summary: Add music to user's favorites
     *     tags: [Users]
@@ -408,7 +408,7 @@ class UserController {
 
    /**
     * @swagger
-    * /v1/users/{userId}/favorites/{musicId}:
+    * /v1/user/{userId}/favorites/{musicId}:
     *   delete:
     *     summary: Remove music from user's favorites
     *     tags: [Users]
@@ -456,7 +456,7 @@ class UserController {
 
    /**
     * @swagger
-    * /v1/users/{userId}/favorites/{musicId}/check:
+    * /v1/user/{userId}/favorites/{musicId}/check:
     *   get:
     *     summary: Check if music is in user's favorites
     *     tags: [Users]
@@ -508,6 +508,30 @@ class UserController {
          return res.status(error.statusCode || HTTPStatusCode.InternalServerError).json({
             success: false,
             message: error.message || 'Failed to check favorite status'
+         });
+      }
+   });
+
+   // Debug endpoint to check user data
+   debugUser = asyncHandler(async (req: Request, res: Response) => {
+      const userId = req.params.userId;
+      
+      try {
+         const user = await this.userService.getUserById(userId);
+         
+         // Also get the raw user data with favorites
+         const rawUser = await this.userService.getRawUserWithFavorites(userId);
+         
+         return res.status(HTTPStatusCode.Ok).json({
+            success: true,
+            userData: user,
+            rawFavorites: rawUser.favorites,
+            favoritesCount: rawUser.favorites?.length || 0
+         });
+      } catch (error: any) {
+         return res.status(error.statusCode || HTTPStatusCode.InternalServerError).json({
+            success: false,
+            message: error.message || 'Failed to get user debug info'
          });
       }
    });

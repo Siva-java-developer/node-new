@@ -352,4 +352,8 @@ router.delete('/:userId/favorites/:musicId', protect, (req: Request, res: Respon
 router.get('/:userId/favorites/:musicId/check', protect, (req: Request, res: Response, next: NextFunction) =>
     userController.checkFavorite(req, res, next));
 
+// Debug route
+router.get('/:userId/debug', protect, (req: Request, res: Response, next: NextFunction) =>
+    userController.debugUser(req, res, next));
+
 export default router

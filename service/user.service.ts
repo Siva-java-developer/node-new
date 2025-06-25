@@ -64,20 +64,37 @@ class UserService implements UserRepository {
      */
     async addFavoriteMusic(userId: string, musicId: string): Promise<void> {
         try {
+            console.log(`Adding favorite: userId=${userId}, musicId=${musicId}`);
+            
+            // Validate ObjectIds
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                throw new CustomError("Invalid user ID format", HTTPStatusCode.BadRequest);
+            }
+            if (!mongoose.Types.ObjectId.isValid(musicId)) {
+                throw new CustomError("Invalid music ID format", HTTPStatusCode.BadRequest);
+            }
+
             // Check if user exists
             const user = await User.findById(userId);
             if (!user) {
                 throw new CustomError("User not found", HTTPStatusCode.NotFound);
             }
+            console.log(`User found: ${user.username}, current favorites: ${user.favorites?.length || 0}`);
 
             // Check if music exists
             const music = await Music.findById(musicId);
             if (!music) {
                 throw new CustomError("Music not found", HTTPStatusCode.NotFound);
             }
+            console.log(`Music found: ${music.uid}`);
+
+            // Initialize favorites array if it doesn't exist
+            if (!user.favorites) {
+                user.favorites = [];
+            }
 
             // Check if music is already in favorites
-            const isAlreadyFavorite = user.favorites?.some(
+            const isAlreadyFavorite = user.favorites.some(
                 (favId) => favId.toString() === musicId
             );
 
@@ -89,12 +106,15 @@ class UserService implements UserRepository {
             }
 
             // Add music to favorites
-            await User.findByIdAndUpdate(
+            const updatedUser = await User.findByIdAndUpdate(
                 userId,
                 { $addToSet: { favorites: new mongoose.Types.ObjectId(musicId) } },
                 { new: true }
             );
+            
+            console.log(`Updated user favorites count: ${updatedUser?.favorites?.length || 0}`);
         } catch (error: any) {
+            console.error(`Error adding favorite: ${error.message}`);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -138,15 +158,29 @@ class UserService implements UserRepository {
      */
     async getUserFavoriteMusic(userId: string): Promise<IMusic[]> {
         try {
-            // Check if user exists
+            console.log(`Getting favorites for userId: ${userId}`);
+            
+            // Validate ObjectId
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                throw new CustomError("Invalid user ID format", HTTPStatusCode.BadRequest);
+            }
+
+            // Check if user exists and populate favorites
             const user = await User.findById(userId).populate('favorites');
             if (!user) {
                 throw new CustomError("User not found", HTTPStatusCode.NotFound);
             }
 
+            console.log(`User found: ${user.username}`);
+            console.log(`Raw favorites array:`, user.favorites);
+            console.log(`Favorites count: ${user.favorites?.length || 0}`);
+
             // Return populated favorites
-            return user.favorites as unknown as IMusic[] || [];
+            const favorites = user.favorites as unknown as IMusic[] || [];
+            console.log(`Returning ${favorites.length} favorites`);
+            return favorites;
         } catch (error: any) {
+            console.error(`Error getting favorites: ${error.message}`);
             if (error instanceof CustomError) {
                 throw error;
             }
@@ -178,6 +212,27 @@ class UserService implements UserRepository {
             }
             throw new CustomError(
                 `Failed to check favorite status: ${error.message}`,
+                HTTPStatusCode.InternalServerError
+            );
+        }
+    }
+
+    /**
+     * Get raw user data with favorites (for debugging)
+     */
+    async getRawUserWithFavorites(userId: string): Promise<any> {
+        try {
+            const user = await User.findById(userId).lean();
+            if (!user) {
+                throw new CustomError("User not found", HTTPStatusCode.NotFound);
+            }
+            return user;
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError(
+                `Failed to get raw user data: ${error.message}`,
                 HTTPStatusCode.InternalServerError
             );
         }
