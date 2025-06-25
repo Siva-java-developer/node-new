@@ -152,7 +152,8 @@ const options: swaggerJsdoc.Options = {
             },
             profileImage: {
               type: 'string',
-              description: 'Path to user\'s profile image'
+              format: 'binary',
+              description: 'User profile image (JPEG, PNG, GIF, WEBP)'
             }
           }
         },

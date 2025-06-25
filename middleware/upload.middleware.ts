@@ -20,7 +20,7 @@ export const handleUploadErrors = (err: any, req: Request, res: Response, next: 
                             success: false,
                             message: UPLOAD_CONFIG.AUDIO.ERRORS.SIZE
                         });
-                    } else if (req.route.path.includes('profile-image')) {
+                    } else if (req.route.path.includes('profile-image') || err.field === 'profileImage') {
                         return res.status(HTTPStatusCode.BadRequest).json({
                             success: false,
                             message: UPLOAD_CONFIG.IMAGE.ERRORS.SIZE

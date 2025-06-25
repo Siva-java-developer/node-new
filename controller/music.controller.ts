@@ -59,6 +59,13 @@ export class MusicController {
      *     tags: [Music]
      *     security:
      *       - bearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: userId
+     *         schema:
+     *           type: string
+     *         required: false
+     *         description: Optional user ID to check favorite status for each music
      *     responses:
      *       200:
      *         description: List of all music entries
@@ -72,14 +79,52 @@ export class MusicController {
      *                 data:
      *                   type: array
      *                   items:
-     *                     $ref: '#/components/schemas/Music'
+     *                     allOf:
+     *                       - $ref: '#/components/schemas/Music'
+     *                       - type: object
+     *                         properties:
+     *                           isFavorite:
+     *                             type: boolean
+     *                             description: Whether the music is in user's favorites (only when userId is provided)
      */
     getAllMusic = asyncHandler(async (req: Request, res: Response) => {
-        const music = await this.musicService.getAllMusic();
-        res.status(HTTPStatusCode.Ok).json({
-            success: true,
-            data: music
-        });
+        // Check if userId is provided in query params for favorite status
+        const userId = req.query.userId as string;
+        
+        if (userId) {
+            // Get all music with favorite status
+            try {
+                const musicWithFavorites = await this.musicService.getAllMusicWithFavoriteStatus(userId);
+                
+                // Transform the result to include isFavorite in each music object
+                const transformedMusic = musicWithFavorites.map(item => ({
+                    ...item.music.toObject(),
+                    isFavorite: item.isFavorite
+                }));
+                
+                res.status(HTTPStatusCode.Ok).json({
+                    success: true,
+                    data: transformedMusic
+                });
+            } catch (error: any) {
+                if (error instanceof CustomError) {
+                    throw error;
+                }
+                // If there's an error with favorite status, fall back to regular music retrieval
+                const music = await this.musicService.getAllMusic();
+                res.status(HTTPStatusCode.Ok).json({
+                    success: true,
+                    data: music
+                });
+            }
+        } else {
+            // Regular music retrieval without favorite status
+            const music = await this.musicService.getAllMusic();
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                data: music
+            });
+        }
     });
 
     /**
@@ -96,6 +141,13 @@ export class MusicController {
      *         required: true
      *         schema:
      *           type: string
+     *         description: Music ID
+     *       - in: query
+     *         name: userId
+     *         schema:
+     *           type: string
+     *         required: false
+     *         description: Optional user ID to check favorite status
      *     responses:
      *       200:
      *         description: Music entry found
@@ -107,14 +159,48 @@ export class MusicController {
      *                 success:
      *                   type: boolean
      *                 data:
-     *                   $ref: '#/components/schemas/Music'
+     *                   allOf:
+     *                     - $ref: '#/components/schemas/Music'
+     *                     - type: object
+     *                       properties:
+     *                         isFavorite:
+     *                           type: boolean
+     *                           description: Whether the music is in user's favorites (only when userId is provided)
      */
     getMusicById = asyncHandler(async (req: Request, res: Response) => {
-        const music = await this.musicService.getMusicById(req.params.id);
-        res.status(HTTPStatusCode.Ok).json({
-            success: true,
-            data: music
-        });
+        // Check if userId is provided in query params for favorite status
+        const userId = req.query.userId as string;
+        
+        if (userId) {
+            // Get music with favorite status
+            try {
+                const result = await this.musicService.getMusicWithFavoriteStatus(req.params.id, userId);
+                res.status(HTTPStatusCode.Ok).json({
+                    success: true,
+                    data: {
+                        ...result.music.toObject(),
+                        isFavorite: result.isFavorite
+                    }
+                });
+            } catch (error: any) {
+                if (error instanceof CustomError) {
+                    throw error;
+                }
+                // If there's an error with favorite status, fall back to regular music retrieval
+                const music = await this.musicService.getMusicById(req.params.id);
+                res.status(HTTPStatusCode.Ok).json({
+                    success: true,
+                    data: music
+                });
+            }
+        } else {
+            // Regular music retrieval without favorite status
+            const music = await this.musicService.getMusicById(req.params.id);
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                data: music
+            });
+        }
     });
 
     /**

@@ -3,6 +3,7 @@ import { CreateMusicDto, UpdateMusicDto } from '../dto/music.dto';
 import { IMusic } from '../model/music.model';
 import CustomError from '../config/custom.error';
 import { HTTPStatusCode } from '../config/enum/http-status.code';
+import User from '../model/user.model';
 
 /**
  * Service class for handling Music business logic
@@ -122,6 +123,70 @@ export class MusicService {
             }
             throw new CustomError(
                 `Error retrieving music by filename: ${error.message}`,
+                HTTPStatusCode.InternalServerError
+            );
+        }
+    }
+
+    /**
+     * Get music with favorite status for a user
+     */
+    async getMusicWithFavoriteStatus(musicId: string, userId: string): Promise<{ music: IMusic; isFavorite: boolean }> {
+        try {
+            const music = await this.musicRepository.getMusicById(musicId);
+            if (!music) {
+                throw new CustomError('Music not found', HTTPStatusCode.NotFound);
+            }
+
+            // Check if music is in user's favorites
+            const user = await User.findById(userId);
+            if (!user) {
+                throw new CustomError('User not found', HTTPStatusCode.NotFound);
+            }
+
+            const isFavorite = user.favorites?.some(
+                (favId) => favId.toString() === musicId
+            ) || false;
+
+            return { music, isFavorite };
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError(
+                `Error retrieving music with favorite status: ${error.message}`,
+                HTTPStatusCode.InternalServerError
+            );
+        }
+    }
+
+    /**
+     * Get all music with favorite status for a user
+     */
+    async getAllMusicWithFavoriteStatus(userId: string): Promise<Array<{ music: IMusic; isFavorite: boolean }>> {
+        try {
+            const allMusic = await this.musicRepository.getAllMusic();
+            
+            // Get user's favorites
+            const user = await User.findById(userId);
+            if (!user) {
+                throw new CustomError('User not found', HTTPStatusCode.NotFound);
+            }
+
+            // Map music to include favorite status
+            return allMusic.map(music => {
+                const isFavorite = user.favorites?.some(
+                    (favId) => favId.toString() === music._id.toString()
+                ) || false;
+
+                return { music, isFavorite };
+            });
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                throw error;
+            }
+            throw new CustomError(
+                `Error retrieving all music with favorite status: ${error.message}`,
                 HTTPStatusCode.InternalServerError
             );
         }

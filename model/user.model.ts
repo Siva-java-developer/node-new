@@ -64,6 +64,11 @@ export enum UserRole {
  *           description: URL or path to user's profile picture
  *         syllabus:
  *           type: string
+ *         favorites:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of music IDs that the user has favorited
  */
 export interface IUser extends Document {
     firstName: string;
@@ -79,6 +84,7 @@ export interface IUser extends Document {
     uid: string;
     profileImage?: string;
     syllabus?: string;
+    favorites?: mongoose.Types.ObjectId[];
     comparePassword(candidatePassword: string): Promise<boolean>;
     fullName(): string;
 }
@@ -148,7 +154,11 @@ const UserSchema = new Schema<IUser, IUserModel>({
     syllabus: {
         type: String,
         required: false
-    }
+    },
+    favorites: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Music'
+    }]
 }, {
     timestamps: true // Adds createdAt and updatedAt fields
 });

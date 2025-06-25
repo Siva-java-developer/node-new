@@ -1,4 +1,6 @@
 import { IUser, UserRole } from "../model/user.model";
+import { IMusic } from "../model/music.model";
+import mongoose from "mongoose";
 
 export default class UserDTO {
     id!: string;
@@ -12,6 +14,8 @@ export default class UserDTO {
     role!: UserRole;
     class!: string;
     syllabus!: string;
+    profileImage?: string;
+    favorites?: string[];
     
     // Mapper function
     static toResponse(user: IUser): UserDTO {
@@ -27,12 +31,18 @@ export default class UserDTO {
       userDTO.role = user.role;
       userDTO.class = user.class;
       userDTO.syllabus = user.syllabus;
+      userDTO.profileImage = user.profileImage;
+      
+      // Convert ObjectId array to string array for favorites
+      if (user.favorites && user.favorites.length > 0) {
+        userDTO.favorites = user.favorites.map(id => id.toString());
+      }
   
       return userDTO;
     }
 
     static toRequest(user: UserDTO): any {
-        return {
+        const request: any = {
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,
@@ -42,7 +52,50 @@ export default class UserDTO {
             mobileNumber: user.mobileNumber,
             role: user.role,
             class: user.class,
-            syllabus: user.syllabus
+            syllabus: user.syllabus,
+            profileImage: user.profileImage
         };
-      }
-  }
+
+        // Convert string array to ObjectId array for favorites
+        if (user.favorites && user.favorites.length > 0) {
+            request.favorites = user.favorites.map(id => new mongoose.Types.ObjectId(id));
+        }
+
+        return request;
+    }
+}
+
+// DTO for favorite music operations
+export class FavoriteMusicDTO {
+    musicId!: string;
+}
+
+// DTO for favorite music response
+export class FavoriteMusicResponseDTO {
+    id!: string;
+    language!: string;
+    syllabus!: string;
+    subject!: string;
+    class!: string;
+    lyrics!: string;
+    music!: string;
+    thumbnail?: string;
+    duration?: number;
+    uid!: string;
+    
+    static toResponse(music: IMusic): FavoriteMusicResponseDTO {
+        const dto = new FavoriteMusicResponseDTO();
+        dto.id = music._id.toString();
+        dto.language = music.language;
+        dto.syllabus = music.syllabus;
+        dto.subject = music.subject;
+        dto.class = music.class;
+        dto.lyrics = music.lyrics;
+        dto.music = music.music;
+        dto.thumbnail = music.thumbnail;
+        dto.duration = music.duration;
+        dto.uid = music.uid;
+        
+        return dto;
+    }
+}

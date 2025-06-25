@@ -21,9 +21,49 @@ const userController = Container.get(UserController);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserInput'
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - username
+ *               - password
+ *               - age
+ *               - gender
+ *               - mobileNumber
+ *               - role
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               age:
+ *                 type: number
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               mobileNumber:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [student, teacher, admin]
+ *               class:
+ *                 type: string
+ *               syllabus:
+ *                 type: string
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: User profile image (JPEG, PNG, GIF, WEBP)
  *     responses:
  *       200:
  *         description: User created successfully
@@ -57,7 +97,7 @@ const userController = Container.get(UserController);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), (req: Request, res: Response, next: NextFunction) =>
+router.post('/', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
     userController.addUser(req, res, next));
 
 /**
@@ -155,9 +195,37 @@ router.get('/:id', protect, (req: Request, res: Response, next: NextFunction) =>
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserInput'
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               age:
+ *                 type: number
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               mobileNumber:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [student, teacher, admin]
+ *               class:
+ *                 type: string
+ *               syllabus:
+ *                 type: string
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: User profile image (JPEG, PNG, GIF, WEBP)
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -191,7 +259,7 @@ router.get('/:id', protect, (req: Request, res: Response, next: NextFunction) =>
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), (req: Request, res: Response, next: NextFunction) =>
+router.put('/:id', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
     userController.updateUser(req, res, next));
 
 /**
@@ -245,62 +313,43 @@ router.put('/:id', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), (req: R
 router.delete('/:id', protect, authorize(UserRole.ADMIN), (req: Request, res: Response, next: NextFunction) =>
     userController.deleteUser(req, res, next));
 
+// Profile image download route
+
 /**
  * @swagger
- * /v1/user/profile-image:
- *   post:
- *     summary: Upload profile image
+ * /v1/user/{userId}/profile-image:
+ *   get:
+ *     summary: Download profile image by user ID
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               profileImage:
- *                 type: string
- *                 format: binary
- *                 description: Image file (JPEG, PNG, GIF, WEBP)
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
  *     responses:
  *       200:
- *         description: Profile image uploaded successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 fileName:
- *                   type: string
- *                 filePath:
- *                   type: string
- *                 message:
- *                   type: string
- *                   example: Profile image uploaded successfully
- *       400:
- *         description: Bad request - file too large or invalid format
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: Profile image file
+ *       404:
+ *         description: User or image not found
  */
-// Profile image upload
-router.post('/profile-image', protect, imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
-    userController.uploadProfileImage(req, res, next));
+router.get('/:userId/profile-image', protect, (req: Request, res: Response, next: NextFunction) =>
+    userController.downloadProfileImageByUserId(req, res, next));
 
-// Profile image delete
-router.delete('/profile/delete/:filename', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), (req: Request, res: Response, next: NextFunction) =>
-    userController.deleteProfileImage(req, res, next));
+// Favorite music routes
+router.get('/:userId/favorites', protect, (req: Request, res: Response, next: NextFunction) =>
+    userController.getUserFavorites(req, res, next));
+
+router.post('/:userId/favorites', protect, (req: Request, res: Response, next: NextFunction) =>
+    userController.addFavorite(req, res, next));
+
+router.delete('/:userId/favorites/:musicId', protect, (req: Request, res: Response, next: NextFunction) =>
+    userController.removeFavorite(req, res, next));
+
+router.get('/:userId/favorites/:musicId/check', protect, (req: Request, res: Response, next: NextFunction) =>
+    userController.checkFavorite(req, res, next));
 
 export default router
