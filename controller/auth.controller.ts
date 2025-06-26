@@ -15,7 +15,14 @@ class AuthController {
      * Register a new user
      */
     register = asyncHandler(async (request: Request, response: Response, next: NextFunction) => {
-        const { firstName, lastName, username, email, password, age, gender, mobileNumber, role, class: userClass } = request.body;
+        const { firstName, lastName, username, email, password, age, gender, mobileNumber, role, class: userClass, syllabus } = request.body;
+        // Get profile image path from file if uploaded
+        const profileImage = request.file ? request.file.path.replace(/\\/g, '/') : undefined;
+
+        // Validate required fields
+        if (!firstName || !lastName || !username || !email || !password || !age || !gender || !mobileNumber || !role || !syllabus) {
+            throw new CustomError('Please provide all required fields', HTTPStatusCode.BadRequest);
+        }
 
         // Check if user already exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -28,7 +35,7 @@ class AuthController {
             return Math.random().toString(36).substring(2, 12);
         };
 
-        // Create new user
+        // Create new user (class and profileImage are optional)
         const user = await User.create({
             firstName,
             lastName,
@@ -39,8 +46,10 @@ class AuthController {
             gender,
             mobileNumber,
             role,
-            class: userClass,
-            uid: generateUID()
+            syllabus,
+            uid: generateUID(),
+            ...(userClass && { class: userClass }),
+            ...(profileImage && { profileImage })
         });
 
         // Generate JWT token with username and role
@@ -62,7 +71,9 @@ class AuthController {
                     mobileNumber: user.mobileNumber,
                     role: user.role,
                     class: user.class,
-                    uid: user.uid
+                    uid: user.uid,
+                    syllabus: user.syllabus,
+                    profileImage: user.profileImage
                 },
                 token
             }
@@ -107,7 +118,9 @@ class AuthController {
                     mobileNumber: user.mobileNumber,
                     role: user.role,
                     class: user.class,
-                    uid: user.uid
+                    uid: user.uid,
+                    syllabus: user.syllabus,
+                    profileImage: user.profileImage
                 },
                 token
             }

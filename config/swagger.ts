@@ -52,7 +52,7 @@ const options: swaggerJsdoc.Options = {
       schemas: {
         User: {
           type: 'object',
-          required: ['firstName', 'lastName', 'username', 'password', 'age', 'gender', 'mobileNumber', 'role', 'class'],
+          required: ['firstName', 'lastName', 'username', 'password', 'age', 'gender', 'mobileNumber', 'role'],
           properties: {
             _id: {
               type: 'string',
@@ -93,7 +93,8 @@ const options: swaggerJsdoc.Options = {
               enum: ['student', 'teacher', 'admin']
             },
             class: {
-              type: 'string'
+              type: 'string',
+              description: 'User\'s class (optional)'
             },
             syllabus: {
               type: 'string'
@@ -104,13 +105,13 @@ const options: swaggerJsdoc.Options = {
             },
             profileImage: {
               type: 'string',
-              description: 'Path to user\'s profile image'
+              description: 'Path to user\'s profile image (optional)'
             }
           }
         },
         UserInput: {
           type: 'object',
-          required: ['firstName', 'lastName', 'username', 'password', 'age', 'gender', 'mobileNumber', 'role', 'class'],
+          required: ['firstName', 'lastName', 'username', 'password', 'age', 'gender', 'mobileNumber', 'role'],
           properties: {
             firstName: {
               type: 'string'
@@ -145,7 +146,8 @@ const options: swaggerJsdoc.Options = {
               enum: ['student', 'teacher', 'admin']
             },
             class: {
-              type: 'string'
+              type: 'string',
+              description: 'User\'s class (optional)'
             },
             syllabus: {
               type: 'string'
@@ -153,7 +155,7 @@ const options: swaggerJsdoc.Options = {
             profileImage: {
               type: 'string',
               format: 'binary',
-              description: 'User profile image (JPEG, PNG, GIF, WEBP)'
+              description: 'User profile image (JPEG, PNG, GIF, WEBP) - optional'
             }
           }
         },
@@ -189,7 +191,8 @@ const options: swaggerJsdoc.Options = {
               type: 'string'
             },
             class: {
-              type: 'string'
+              type: 'string',
+              description: 'User\'s class (optional)'
             },
             syllabus: {
               type: 'string'
@@ -199,7 +202,7 @@ const options: swaggerJsdoc.Options = {
             },
             profileImage: {
               type: 'string',
-              description: 'Path to user\'s profile image'
+              description: 'Path to user\'s profile image (optional)'
             }
           }
         },

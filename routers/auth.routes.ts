@@ -2,6 +2,8 @@ import { Request, Response, NextFunction, Router } from "express";
 import AuthController from '../controller/auth.controller';
 import Container from 'typedi';
 import { protect } from '../middleware/auth.middleware';
+import { imageUpload } from '../utils/file-upload.utils';
+import { handleUploadErrors } from '../middleware/upload.middleware';
 
 const router = Router();
 const authController = Container.get(AuthController);
@@ -22,7 +24,7 @@ const authController = Container.get(AuthController);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -35,7 +37,7 @@ const authController = Container.get(AuthController);
  *               - gender
  *               - mobileNumber
  *               - role
- *               - class
+ *               - syllabus
  *             properties:
  *               firstName:
  *                 type: string
@@ -60,8 +62,15 @@ const authController = Container.get(AuthController);
  *               role:
  *                 type: string
  *                 enum: [student, teacher, admin]
+ *               syllabus:
+ *                 type: string
  *               class:
  *                 type: string
+ *                 description: User's class (optional)
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Profile image file (optional)
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -90,7 +99,7 @@ const authController = Container.get(AuthController);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/register', (req: Request, res: Response, next: NextFunction) =>
+router.post('/register', imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
     authController.register(req, res, next));
 
 /**

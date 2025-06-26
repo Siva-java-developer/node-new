@@ -6,6 +6,8 @@ import { UserRole } from '../model/user.model';
 import { imageUpload } from '../utils/file-upload.utils';
 import { handleUploadErrors } from '../middleware/upload.middleware';
 import UPLOAD_CONFIG from '../config/upload.config';
+import CustomError from '../config/custom.error';
+import { HTTPStatusCode } from '../config/enum/http-status.code';
 
 const router = Router()
 const userController = Container.get(UserController);
@@ -182,6 +184,7 @@ router.get('/:id', protect, (req: Request, res: Response, next: NextFunction) =>
  * /v1/user/{id}:
  *   put:
  *     summary: Update user
+ *     description: Users can update their own profile. Admin and teacher roles can update any user.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -247,7 +250,7 @@ router.get('/:id', protect, (req: Request, res: Response, next: NextFunction) =>
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       403:
- *         description: Forbidden
+ *         description: Forbidden - Students can only update their own profile
  *         content:
  *           application/json:
  *             schema:
@@ -259,7 +262,24 @@ router.get('/:id', protect, (req: Request, res: Response, next: NextFunction) =>
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', protect, authorize(UserRole.ADMIN, UserRole.TEACHER), imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
+// Middleware to check if user is updating their own profile or has admin/teacher privileges
+const checkUserUpdatePermission = (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    const requestedUserId = req.params.id;
+    
+    // Allow if user is updating their own profile or is an admin/teacher
+    if (user._id.toString() === requestedUserId || 
+        [UserRole.ADMIN, UserRole.TEACHER].includes(user.role)) {
+        next();
+    } else {
+        throw new CustomError(
+            `User role ${user.role} is not authorized to update other users`,
+            HTTPStatusCode.Forbidden
+        );
+    }
+};
+
+router.put('/:id', protect, checkUserUpdatePermission, imageUpload.single('profileImage'), handleUploadErrors, (req: Request, res: Response, next: NextFunction) =>
     userController.updateUser(req, res, next));
 
 /**

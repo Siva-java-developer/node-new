@@ -28,15 +28,31 @@ const swaggerOptions = {
   explorer: true,
   swaggerOptions: {
     persistAuthorization: true
-  }
+  },
+  customJS: ['/js/swagger-fetch-button.js'] // Add our custom JavaScript
 };
 
 // Standard Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 
-// Custom Swagger UI with login form
-app.get('/api-docs-auth', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'swagger-ui-login.html'));
+// Custom Swagger UI with fetch button
+app.get('/api-docs-custom', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'swagger-ui-custom.html'));
+});
+
+// Redirect all old paths to the custom Swagger UI
+app.get(['/api-docs-auth', '/api-docs-enhanced', '/api-docs-simple', '/api-docs-fetch'], (req, res) => {
+  res.redirect('/api-docs-custom');
+});
+
+// Direct user update form - if this file still exists
+app.get('/user-update', (req, res) => {
+  res.redirect('/api-docs-custom');
+});
+
+// Redirect root to custom Swagger UI with fetch button
+app.get('/', (req, res) => {
+  res.redirect('/api-docs-custom');
 });
 
 // Serve Swagger JSON
