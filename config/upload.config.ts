@@ -51,6 +51,27 @@ export const UPLOAD_CONFIG = {
         }
     },
     
+    // LRC (Lyrics) file upload configuration
+    LYRICS: {
+        // File size limits
+        SIZE: {
+            MIN: 10, // 10 bytes
+            DEFAULT: 1 * 1024 * 1024, // 1MB
+            MAX: 5 * 1024 * 1024 // 5MB
+        },
+        // Allowed MIME types (text files)
+        ALLOWED_TYPES: [
+            'text/plain',
+            'application/octet-stream', // For .lrc files without specific MIME type
+            'text/x-lrc'
+        ],
+        // Error messages
+        ERRORS: {
+            TYPE: 'Only LRC lyrics files are allowed (.lrc, .txt)',
+            SIZE: `Lyrics file size must be between 10 bytes and 5MB`
+        }
+    },
+    
     // Document file upload configuration (for future use)
     DOCUMENT: {
         // File size limits

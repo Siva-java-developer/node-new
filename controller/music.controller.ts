@@ -9,6 +9,7 @@ import UPLOAD_CONFIG from '../config/upload.config';
 import * as mm from 'music-metadata';
 import fs from 'fs';
 import sharp from 'sharp';
+import { promisify } from 'util';
 
 /**
  * Controller class for handling Music-related HTTP requests
@@ -993,6 +994,240 @@ export class MusicController {
                 success: false,
                 message: 'Failed to delete music file'
             });
+        }
+    });
+
+    /**
+     * @swagger
+     * /v1/music/upload/lyrics:
+     *   post:
+     *     summary: Upload lyrics file in LRC format
+     *     tags: [Music]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         multipart/form-data:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               lyricsFile:
+     *                 type: string
+     *                 format: binary
+     *                 description: Lyrics file in LRC format (.lrc, .txt)
+     *               musicId:
+     *                 type: string
+     *                 description: Optional music ID to associate lyrics with
+     *     responses:
+     *       200:
+     *         description: Lyrics file uploaded successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 fileName:
+     *                   type: string
+     *                   example: lyrics-1234567890.lrc
+     *                 filePath:
+     *                   type: string
+     *                   example: /uploads/Music/lyrics/lyrics-1234567890.lrc
+     *                 content:
+     *                   type: string
+     *                   description: The content of the lyrics file
+     *                 message:
+     *                   type: string
+     *                   example: Lyrics file uploaded successfully
+     *       400:
+     *         description: Bad request - file too large or invalid format
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    uploadLyrics = asyncHandler(async (req: Request, res: Response) => {
+        console.log('Lyrics upload endpoint hit');
+        console.log('Request body:', req.body);
+        console.log('Request file:', req.file);
+        
+        if (!req.file) {
+            console.log('No file found in request');
+            res.status(HTTPStatusCode.BadRequest).json({
+                success: false,
+                message: UPLOAD_CONFIG.GENERAL.ERRORS.NO_FILE
+            });
+            return;
+        }
+
+        const fileName = req.file.filename;
+        const filePath = `/uploads/Music/lyrics/${fileName}`;
+        const absoluteFilePath = path.join(__dirname, '..', 'uploads', 'Music', 'lyrics', fileName);
+        
+        console.log('Lyrics file uploaded successfully:', fileName);
+        
+        try {
+            // Read the content of the lyrics file
+            const readFile = promisify(fs.readFile);
+            const fileContent = await readFile(absoluteFilePath, 'utf8');
+            
+            // If musicId is provided, update the music entry with the lyrics file path
+            const musicId = req.body.musicId;
+            if (musicId) {
+                try {
+                    await this.musicService.updateMusic(musicId, { lyrics: filePath });
+                    console.log(`Updated music ${musicId} with lyrics file ${filePath}`);
+                } catch (error) {
+                    console.error(`Failed to update music ${musicId} with lyrics:`, error);
+                    // Continue with the upload response even if update fails
+                }
+            }
+            
+            // Return success response with file information and content
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                fileName: fileName,
+                filePath: filePath,
+                content: fileContent,
+                message: 'Lyrics file uploaded successfully'
+            });
+        } catch (error: any) {
+            console.error('Error processing lyrics file:', error);
+            
+            res.status(HTTPStatusCode.InternalServerError).json({
+                success: false,
+                message: `Error processing lyrics file: ${error.message}`
+            });
+        }
+    });
+
+    /**
+     * @swagger
+     * /v1/music/lyrics/{fileName}:
+     *   get:
+     *     summary: Download a lyrics file
+     *     tags: [Music]
+     *     parameters:
+     *       - in: path
+     *         name: fileName
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: The filename of the lyrics file to download
+     *     responses:
+     *       200:
+     *         description: Lyrics file content
+     *         content:
+     *           text/plain:
+     *             schema:
+     *               type: string
+     *       404:
+     *         description: Lyrics file not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    downloadLyrics = asyncHandler(async (req: Request, res: Response) => {
+        const fileName = req.params.fileName;
+        const filePath = path.join(__dirname, '..', 'uploads', 'Music', 'lyrics', fileName);
+        
+        try {
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                throw new CustomError('Lyrics file not found', HTTPStatusCode.NotFound);
+            }
+            
+            // Set appropriate content type
+            res.setHeader('Content-Type', 'text/plain');
+            res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+            
+            // Stream the file to the response
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(HTTPStatusCode.InternalServerError).json({
+                    success: false,
+                    message: `Error downloading lyrics file: ${error.message}`
+                });
+            }
+        }
+    });
+
+    /**
+     * @swagger
+     * /v1/music/lyrics/{fileName}:
+     *   delete:
+     *     summary: Delete a lyrics file
+     *     tags: [Music]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: fileName
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: The filename of the lyrics file to delete
+     *     responses:
+     *       200:
+     *         description: Lyrics file deleted successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 message:
+     *                   type: string
+     *                   example: Lyrics file deleted successfully
+     *       404:
+     *         description: Lyrics file not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    deleteLyrics = asyncHandler(async (req: Request, res: Response) => {
+        const fileName = req.params.fileName;
+        const filePath = path.join(__dirname, '..', 'uploads', 'Music', 'lyrics', fileName);
+        
+        try {
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                throw new CustomError('Lyrics file not found', HTTPStatusCode.NotFound);
+            }
+            
+            // Delete the file
+            fs.unlinkSync(filePath);
+            
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                message: 'Lyrics file deleted successfully'
+            });
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(HTTPStatusCode.InternalServerError).json({
+                    success: false,
+                    message: `Error deleting lyrics file: ${error.message}`
+                });
+            }
         }
     });
 }

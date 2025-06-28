@@ -14,6 +14,7 @@ import mongoose, { Schema, Model, Document } from "mongoose";
  *     Music:
  *       type: object
  *       required:
+ *         - title
  *         - language
  *         - syllabus
  *         - subject
@@ -24,6 +25,9 @@ import mongoose, { Schema, Model, Document } from "mongoose";
  *         _id:
  *           type: string
  *           description: Auto-generated MongoDB ID
+ *         title:
+ *           type: string
+ *           description: Title of the music content
  *         language:
  *           type: string
  *           description: Language of the music content
@@ -53,6 +57,7 @@ import mongoose, { Schema, Model, Document } from "mongoose";
  *           description: Unique identifier
  */
 export interface IMusic extends Document {
+    title: string;
     language: string;
     syllabus: string;
     subject: string;
@@ -69,6 +74,10 @@ interface IMusicModel extends Model<IMusic> {
 }
 
 const MusicSchema = new Schema<IMusic, IMusicModel>({
+    title: {
+        type: String,
+        required: true
+    },
     language: {
         type: String,
         required: true

@@ -12,6 +12,7 @@ console.log('Base upload directory path:', baseUploadDir);
 const musicUploadDir = path.join(baseUploadDir, 'Music');
 const profilesUploadDir = path.join(baseUploadDir, 'Profiles');
 const thumbnailsUploadDir = path.join(musicUploadDir, 'thumbnails');
+const lyricsUploadDir = path.join(musicUploadDir, 'lyrics');
 
 // Ensure all directories exist
 const createDirIfNotExists = (dirPath: string) => {
@@ -25,6 +26,7 @@ createDirIfNotExists(baseUploadDir);
 createDirIfNotExists(musicUploadDir);
 createDirIfNotExists(profilesUploadDir);
 createDirIfNotExists(thumbnailsUploadDir);
+createDirIfNotExists(lyricsUploadDir);
 
 // Configure storage for music files
 const musicStorage = multer.diskStorage({
@@ -65,6 +67,19 @@ const musicThumbnailStorage = multer.diskStorage({
     }
 });
 
+// Configure storage for lyrics files (LRC)
+const lyricsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, lyricsUploadDir);
+    },
+    filename: function (req, file, cb) {
+        // Create a unique filename with original extension
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname) || '.lrc'; // Default to .lrc if no extension
+        cb(null, 'lyrics-' + uniqueSuffix + ext);
+    }
+});
+
 // File filter for audio files
 const audioFileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     // Accept only allowed audio file types
@@ -82,6 +97,21 @@ const imageFileFilter = (req: Express.Request, file: Express.Multer.File, cb: mu
         cb(null, true);
     } else {
         cb(new Error(UPLOAD_CONFIG.IMAGE.ERRORS.TYPE));
+    }
+};
+
+// File filter for lyrics files (LRC)
+const lyricsFileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    // Check file extension first (for .lrc files)
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext === '.lrc' || ext === '.txt') {
+        cb(null, true);
+    } 
+    // Then check MIME type as fallback
+    else if (UPLOAD_CONFIG.LYRICS.ALLOWED_TYPES.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error(UPLOAD_CONFIG.LYRICS.ERRORS.TYPE));
     }
 };
 
@@ -154,7 +184,31 @@ export const createMusicThumbnailUpload = (maxFileSize = config.fileUpload.maxSi
     });
 };
 
+/**
+ * Create a multer instance for lyrics (LRC) file uploads with custom file size limit
+ * @param maxFileSize Maximum file size in bytes (default: 5MB)
+ * @returns Configured multer instance
+ */
+export const createLyricsUpload = (maxFileSize = UPLOAD_CONFIG.LYRICS.SIZE.DEFAULT) => {
+    console.log(`Creating lyrics upload middleware with max file size: ${maxFileSize / (1024 * 1024)}MB`);
+    
+    return multer({
+        storage: lyricsStorage,
+        fileFilter: lyricsFileFilter,
+        limits: {
+            fileSize: Math.min(
+                Math.max(maxFileSize, UPLOAD_CONFIG.LYRICS.SIZE.MIN), 
+                UPLOAD_CONFIG.LYRICS.SIZE.MAX
+            ), // Ensure size is within allowed range
+            files: 1, // Only one lyrics file at a time
+            fieldNameSize: UPLOAD_CONFIG.GENERAL.MAX_FIELD_NAME_SIZE,
+            fieldSize: UPLOAD_CONFIG.GENERAL.MAX_FIELD_VALUE_SIZE
+        }
+    });
+};
+
 // Create instances with environment-specific file size limits
 export const audioUpload = createAudioUpload();
 export const imageUpload = createImageUpload();
 export const musicThumbnailUpload = createMusicThumbnailUpload();
+export const lyricsUpload = createLyricsUpload();

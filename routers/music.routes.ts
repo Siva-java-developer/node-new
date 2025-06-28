@@ -2,7 +2,7 @@ import express from 'express';
 import { MusicController } from '../controller/music.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 import { UserRole } from '../model/user.model';
-import { audioUpload, imageUpload, musicThumbnailUpload } from '../utils/file-upload.utils';
+import { audioUpload, imageUpload, musicThumbnailUpload, lyricsUpload } from '../utils/file-upload.utils';
 import { handleUploadErrors } from '../middleware/upload.middleware';
 import path from 'path';
 import UPLOAD_CONFIG from '../config/upload.config';

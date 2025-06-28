@@ -6,6 +6,10 @@ import { IsString, IsNotEmpty } from 'class-validator';
 export class CreateMusicDto {
     @IsString()
     @IsNotEmpty()
+    title: string;
+
+    @IsString()
+    @IsNotEmpty()
     language: string;
 
     @IsString()
@@ -36,6 +40,9 @@ export class CreateMusicDto {
  * Data Transfer Object for updating an existing music entry
  */
 export class UpdateMusicDto {
+    @IsString()
+    title?: string;
+
     @IsString()
     language?: string;
 

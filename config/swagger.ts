@@ -1,5 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import { version } from '../package.json';
+import { title } from 'process';
 
 // Define the OpenAPI document structure
 interface OpenAPIDocument {
@@ -208,8 +209,12 @@ const options: swaggerJsdoc.Options = {
         },
         CreateMusicDto: {
           type: 'object',
-          required: ['language', 'syllabus', 'subject', 'class', 'lyrics', 'music'],
+          required: ['title','language', 'syllabus', 'subject', 'class', 'lyrics', 'music'],
           properties: {
+            title: {
+              type: 'string',
+              description: 'Title of the music content'
+            },
             language: {
               type: 'string',
               description: 'Language of the music content'
@@ -237,12 +242,20 @@ const options: swaggerJsdoc.Options = {
             duration: {
               type: 'number',
               description: 'Duration of the music in seconds'
+            },
+            thumbnail: {
+              type: 'string',
+              description: 'URL or path to the thumbnail image for the music'
             }
           }
         },
         UpdateMusicDto: {
           type: 'object',
           properties: {
+            title: {
+              type: 'string',
+              description: 'Updated title of the music content'
+            },
             language: {
               type: 'string',
               description: 'Language of the music content'
@@ -270,6 +283,10 @@ const options: swaggerJsdoc.Options = {
             duration: {
               type: 'number',
               description: 'Duration of the music in seconds'
+            },
+            thumbnail: {
+              type: 'string',
+              description: 'URL or path to the thumbnail image for the music'
             }
           }
         },
