@@ -48,3 +48,10 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Uploaded files
+uploads/
+uploads/Music/
+uploads/Music/lyrics/
+uploads/Music/thumbnails/
+uploads/Profiles/
+

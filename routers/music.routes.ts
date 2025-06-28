@@ -48,11 +48,17 @@ router.get('/download/:filename', musicController.downloadMusicFile);
 // Download thumbnail - must come before the :id route
 router.get('/thumbnail/:fileName', musicController.downloadThumbnail);
 
+// Download lyrics - must come before the :id route
+router.get('/lyrics/:fileName', musicController.downloadLyrics);
+
 // Delete music file - must come before the :id route (protected route)
 router.delete('/file/delete/:filename', protect, authorize(UserRole.TEACHER, UserRole.ADMIN), musicController.deleteMusicFile);
 
 // Delete thumbnail - must come before the :id route (protected route)
 router.delete('/thumbnail/:fileName', protect, authorize(UserRole.TEACHER, UserRole.ADMIN), musicController.deleteThumbnail);
+
+// Delete lyrics - must come before the :id route (protected route)
+router.delete('/lyrics/:fileName', protect, authorize(UserRole.TEACHER, UserRole.ADMIN), musicController.deleteLyrics);
 
 // Simple test route for upload path - must come before the :id route
 router.get('/test/upload', (req, res) => {
@@ -134,6 +140,9 @@ router.post('/upload', audioUpload.single('audioFile'), handleUploadErrors, musi
 
 // Thumbnail upload route
 router.post('/upload/thumbnail', musicThumbnailUpload.single('imageFile'), handleUploadErrors, musicController.uploadThumbnail);
+
+// Lyrics upload route
+router.post('/upload/lyrics', lyricsUpload.single('lyricsFile'), handleUploadErrors, musicController.uploadLyrics);
 
 // Filter route
 router.post('/filter', musicController.filterMusic);
