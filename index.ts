@@ -8,12 +8,18 @@ import config from './config';
 import { specs } from './config/swagger';
 
 import userRoutes from './routers/user.routes'
+import cors from "cors";
 import authRoutes from './routers/auth.routes'
 import musicRoutes from './routers/music.routes'
 import { exceptionHandler } from './config/exception.handler';
 import { pageNotFoundExceptionHandler } from './config/page-not-found.exception';
 
 const app = express();
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
