@@ -44,10 +44,10 @@ const options: swaggerJsdoc.Options = {
           scheme: 'bearer',
           bearerFormat: 'JWT'
         },
-        ApiKeyAuth: {
-          type: 'apiKey',
-          in: 'header',
-          name: 'Authorization'
+        BearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
         }
       },
       schemas: {
