@@ -10,7 +10,6 @@ const playlistController = new PlaylistController();
 // Public routes (no authentication required)
 router.get('/', playlistController.getPublicPlaylists); // Main playlist listing
 router.get('/search', playlistController.searchPlaylists);
-router.get('/:id', playlistController.getPlaylistById);
 router.get('/uid/:uid', playlistController.getPlaylistByUid);
 
 // Protected routes (authentication required)
@@ -21,6 +20,9 @@ router.post('/', playlistThumbnailUpload.single('thumbnail'), handleUploadErrors
 router.get('/my', playlistController.getUserPlaylists);
 router.get('/accessible', playlistController.getAccessiblePlaylists);
 router.get('/shared', playlistController.getSharedPlaylists);
+
+// Generic routes that should come after specific ones
+router.get('/:id', playlistController.getPlaylistById);
 router.put('/:id', playlistThumbnailUpload.single('thumbnail'), handleUploadErrors, playlistController.updatePlaylist);
 router.delete('/:id', playlistController.deletePlaylist);
 

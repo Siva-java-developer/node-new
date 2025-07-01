@@ -23,7 +23,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists:
+     * /v1/playlists:
      *   post:
      *     summary: Create a new playlist with optional thumbnail
      *     tags: [Playlist]
@@ -96,7 +96,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}:
+     * /v1/playlists/{id}:
      *   get:
      *     summary: Get playlist by ID
      *     tags: [Playlist]
@@ -145,7 +145,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/uid/{uid}:
+     * /v1/playlists/uid/{uid}:
      *   get:
      *     summary: Get playlist by UID
      *     tags: [Playlist]
@@ -194,7 +194,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/my:
+     * /v1/playlists/my:
      *   get:
      *     summary: Get user's own playlists
      *     tags: [Playlist]
@@ -229,6 +229,7 @@ export class PlaylistController {
                 data: result
             });
         } catch (error: any) {
+            console.error('Error in getUserPlaylists:', error);
             if (error instanceof CustomError) {
                 res.status(error.statusCode).json({
                     success: false,
@@ -245,7 +246,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/accessible:
+     * /v1/playlists/accessible:
      *   get:
      *     summary: Get all accessible playlists for user
      *     tags: [Playlist]
@@ -296,7 +297,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists:
+     * /v1/playlists:
      *   get:
      *     summary: Get all playlists (main listing)
      *     tags: [Playlist]
@@ -344,7 +345,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/shared:
+     * /v1/playlists/shared:
      *   get:
      *     summary: Get playlists shared with user
      *     tags: [Playlist]
@@ -395,7 +396,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}:
+     * /v1/playlists/{id}:
      *   put:
      *     summary: Update playlist with optional thumbnail
      *     tags: [Playlist]
@@ -473,7 +474,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}:
+     * /v1/playlists/{id}:
      *   delete:
      *     summary: Delete playlist
      *     tags: [Playlist]
@@ -521,7 +522,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}/songs:
+     * /v1/playlists/{id}/songs:
      *   post:
      *     summary: Add song to playlist
      *     tags: [Playlist]
@@ -590,7 +591,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}/songs:
+     * /v1/playlists/{id}/songs:
      *   delete:
      *     summary: Remove song from playlist
      *     tags: [Playlist]
@@ -651,7 +652,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}/reorder:
+     * /v1/playlists/{id}/reorder:
      *   put:
      *     summary: Reorder songs in playlist
      *     tags: [Playlist]
@@ -714,7 +715,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}/share:
+     * /v1/playlists/{id}/share:
      *   post:
      *     summary: Share playlist with users
      *     tags: [Playlist]
@@ -780,7 +781,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}/unshare:
+     * /v1/playlists/{id}/unshare:
      *   post:
      *     summary: Unshare playlist with users
      *     tags: [Playlist]
@@ -843,7 +844,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/{id}/play:
+     * /v1/playlists/{id}/play:
      *   post:
      *     summary: Play playlist (increment play count)
      *     tags: [Playlist]
@@ -892,7 +893,7 @@ export class PlaylistController {
 
     /**
      * @swagger
-     * /api/playlists/search:
+     * /v1/playlists/search:
      *   get:
      *     summary: Search playlists
      *     tags: [Playlist]

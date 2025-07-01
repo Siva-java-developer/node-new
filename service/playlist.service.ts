@@ -71,8 +71,18 @@ export class PlaylistService {
             this.playlistRepository.countByOwner(userId)
         ]);
 
+        const mappedPlaylists = playlists.map(playlist => {
+            try {
+                return this.mapToSummaryDto(playlist);
+            } catch (error) {
+                console.error('Error mapping playlist to summary DTO:', error);
+                console.error('Playlist data:', playlist);
+                throw error;
+            }
+        });
+
         return {
-            playlists: playlists.map(this.mapToSummaryDto),
+            playlists: mappedPlaylists,
             total,
             page,
             totalPages: Math.ceil(total / limit)
@@ -91,7 +101,7 @@ export class PlaylistService {
         ]);
 
         return {
-            playlists: playlists.map(this.mapToSummaryDto),
+            playlists: playlists.map(playlist => this.mapToSummaryDto(playlist)),
             total,
             page,
             totalPages: Math.ceil(total / limit)
@@ -110,7 +120,7 @@ export class PlaylistService {
         ]);
 
         return {
-            playlists: playlists.map(this.mapToSummaryDto),
+            playlists: playlists.map(playlist => this.mapToSummaryDto(playlist)),
             total,
             page,
             totalPages: Math.ceil(total / limit)
@@ -292,7 +302,7 @@ export class PlaylistService {
 
     async searchPlaylists(searchParams: PlaylistSearchDto): Promise<PlaylistSummaryDto[]> {
         const playlists = await this.playlistRepository.search(searchParams);
-        return playlists.map(this.mapToSummaryDto);
+        return playlists.map(playlist => this.mapToSummaryDto(playlist));
     }
 
     private mapToResponseDto(playlist: IPlaylist): PlaylistResponseDto {
@@ -302,9 +312,9 @@ export class PlaylistService {
             description: playlist.description,
             owner: playlist.owner as any,
             visibility: playlist.visibility,
-            songs: playlist.songs,
-            totalDuration: playlist.totalDuration,
-            playCount: playlist.playCount,
+            songs: playlist.songs || [],
+            totalDuration: playlist.totalDuration || 0,
+            playCount: playlist.playCount || 0,
             thumbnail: playlist.thumbnail,
             uid: playlist.uid,
             createdAt: playlist.createdAt,
@@ -319,9 +329,9 @@ export class PlaylistService {
             description: playlist.description,
             owner: playlist.owner as any,
             visibility: playlist.visibility,
-            songCount: playlist.songs.length,
-            totalDuration: playlist.totalDuration,
-            playCount: playlist.playCount,
+            songCount: playlist.songs ? playlist.songs.length : 0,
+            totalDuration: playlist.totalDuration || 0,
+            playCount: playlist.playCount || 0,
             thumbnail: playlist.thumbnail,
             uid: playlist.uid,
             createdAt: playlist.createdAt,
