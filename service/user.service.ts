@@ -1,11 +1,12 @@
 import { Service } from "typedi";
 import { UserRepository } from "../dao/user.repository";
-import User from "../model/user.model";
-import UserResponseDTO from "../dto/user.dto";
+import User, { UserRole } from "../model/user.model";
+import UserResponseDTO, { BulkUploadResultDTO, UserCreationDTO } from "../dto/user.dto";
 import CustomError from "../config/custom.error";
 import mongoose from "mongoose";
 import { HTTPStatusCode } from "../config/enum/http-status.code";
 import Music, { IMusic } from "../model/music.model";
+import { generateUID } from "../utils/excel.utils";
 
 @Service()
 class UserService implements UserRepository {
@@ -236,6 +237,56 @@ class UserService implements UserRepository {
                 HTTPStatusCode.InternalServerError
             );
         }
+    }
+
+    /**
+     * Bulk create users from Excel upload
+     * @param users Array of user data from Excel
+     * @returns Result of bulk upload operation
+     */
+    async bulkCreateUsers(users: UserCreationDTO[]): Promise<BulkUploadResultDTO> {
+        const result: BulkUploadResultDTO = {
+            totalProcessed: users.length,
+            successful: 0,
+            failed: 0,
+            errors: []
+        };
+
+        // Process each user
+        for (let i = 0; i < users.length; i++) {
+            try {
+                const userData = users[i];
+                
+                // Validate required fields
+                if (!userData.firstName || !userData.lastName || !userData.username || 
+                    !userData.password || !userData.age || !userData.gender || 
+                    !userData.mobileNumber || !userData.role) {
+                    throw new Error("Missing required fields");
+                }
+
+                // Generate UID
+                const uid = generateUID();
+                
+                // Create user with UID
+                await User.create({
+                    ...userData,
+                    uid
+                });
+                
+                result.successful++;
+            } catch (error: any) {
+                result.failed++;
+                result.errors.push({
+                    index: i,
+                    username: users[i].username || `Row ${i + 2}`, // +2 because Excel is 1-indexed and has a header row
+                    error: error.code === 11000 
+                        ? "Username or email already exists" 
+                        : error.message || "Unknown error"
+                });
+            }
+        }
+        
+        return result;
     }
 }
 

@@ -2,6 +2,38 @@ import { IUser, UserRole } from "../model/user.model";
 import { IMusic } from "../model/music.model";
 import mongoose from "mongoose";
 
+// DTO for bulk user upload
+export interface BulkUserUploadDTO {
+    users: UserCreationDTO[];
+}
+
+// DTO for user creation
+export interface UserCreationDTO {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    password: string;
+    age: number;
+    gender: string;
+    mobileNumber: string;
+    role: UserRole;
+    class?: string;
+    syllabus?: string;
+}
+
+// DTO for bulk upload result
+export interface BulkUploadResultDTO {
+    totalProcessed: number;
+    successful: number;
+    failed: number;
+    errors: Array<{
+        index: number;
+        username: string;
+        error: string;
+    }>;
+}
+
 export default class UserDTO {
     id!: string;
     firstName!: string;

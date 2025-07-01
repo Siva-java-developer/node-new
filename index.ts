@@ -12,6 +12,7 @@ import cors from "cors";
 import authRoutes from './routers/auth.routes'
 import musicRoutes from './routers/music.routes'
 import playlistRoutes from './routers/playlist.routes'
+import bulkUserRoutes from './routers/bulk-user.routes'
 import { exceptionHandler } from './config/exception.handler';
 import { pageNotFoundExceptionHandler } from './config/page-not-found.exception';
 
@@ -80,6 +81,7 @@ app.use('/v1/auth', authRoutes);
 app.use('/v1/user', userRoutes);
 app.use('/v1/music', musicRoutes);
 app.use('/v1/playlists', playlistRoutes);
+app.use('/v1/bulk-user', bulkUserRoutes);
 
 // Additional route mapping for backward compatibility
 app.use('/api/playlists', playlistRoutes);
