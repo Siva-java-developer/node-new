@@ -1230,4 +1230,161 @@ export class MusicController {
             }
         }
     });
+
+    /**
+     * @swagger
+     * /v1/music/thumbnails/list:
+     *   post:
+     *     summary: Get thumbnail files with base64 encoded content (all or filtered by filename array)
+     *     tags: [Music]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: false
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               filenames:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 example: ["thumbnail-1234567890.jpg", "profile-image.png"]
+     *                 description: Array of specific filenames to retrieve (optional - if not provided, returns all)
+     *     responses:
+     *       200:
+     *         description: Thumbnail files with base64 encoded content
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       filename:
+     *                         type: string
+     *                         example: "thumbnail-1751186160714-584250547.webp"
+     *                       content:
+     *                         type: string
+     *                         format: byte
+     *                         description: Base64 encoded file content
+     *                       mimeType:
+     *                         type: string
+     *                         example: "image/webp"
+     *                       mediaType:
+     *                         type: string
+     *                         example: "image"
+     *                       size:
+     *                         type: number
+     *                         example: 886
+     *                 count:
+     *                   type: number
+     *                   example: 1
+     *                 message:
+     *                   type: string
+     *                   example: "Thumbnail files downloaded successfully (filtered by 1 requested filenames)"
+     *       404:
+     *         description: No thumbnail files found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     *       500:
+     *         description: Internal server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Error'
+     */
+    getThumbnailList = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const requestedFilenames = req.body?.filenames || [];
+            const thumbnailDir = path.join(__dirname, '..', 'uploads', 'Music', 'thumbnails');
+            
+            // Check if thumbnails directory exists
+            if (!fs.existsSync(thumbnailDir)) {
+                return res.status(HTTPStatusCode.Ok).json({
+                    success: true,
+                    data: [],
+                    count: 0,
+                    message: 'No thumbnails directory found'
+                });
+            }
+            
+            // Read all files from thumbnails directory
+            const files = fs.readdirSync(thumbnailDir);
+            
+            // Filter only image files (common image extensions)
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+            let thumbnailFiles = files.filter(file => {
+                const ext = path.extname(file).toLowerCase();
+                return imageExtensions.includes(ext);
+            });
+            
+            // If specific filenames are requested, filter by those
+            if (requestedFilenames && Array.isArray(requestedFilenames) && requestedFilenames.length > 0) {
+                thumbnailFiles = thumbnailFiles.filter(file => 
+                    requestedFilenames.includes(file)
+                );
+            }
+            
+            // Sort files alphabetically
+            thumbnailFiles.sort();
+            
+            // Read file contents and prepare response data
+            const thumbnailData = [];
+            
+            for (const filename of thumbnailFiles) {
+                try {
+                    const filePath = path.join(thumbnailDir, filename);
+                    const fileContent = fs.readFileSync(filePath);
+                    const stats = fs.statSync(filePath);
+                    const extension = path.extname(filename).toLowerCase();
+                    
+                    // Determine MIME type
+                    let mimeType = 'image/jpeg'; // Default
+                    if (extension === '.png') mimeType = 'image/png';
+                    else if (extension === '.gif') mimeType = 'image/gif';
+                    else if (extension === '.webp') mimeType = 'image/webp';
+                    else if (extension === '.bmp') mimeType = 'image/bmp';
+                    else if (extension === '.svg') mimeType = 'image/svg+xml';
+                    
+                    thumbnailData.push({
+                        filename,
+                        content: fileContent.toString('base64'),
+                        mimeType,
+                        mediaType: 'image',
+                        size: stats.size
+                    });
+                } catch (fileError) {
+                    console.error(`Error reading file ${filename}:`, fileError);
+                    // Skip this file and continue with others
+                }
+            }
+            
+            const message = requestedFilenames && requestedFilenames.length > 0 
+                ? `Thumbnail files downloaded successfully (filtered by ${requestedFilenames.length} requested filenames)`
+                : 'All thumbnail files downloaded successfully';
+            
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                data: thumbnailData,
+                count: thumbnailData.length,
+                message
+            });
+        } catch (error: any) {
+            console.error('Error retrieving thumbnail files:', error);
+            res.status(HTTPStatusCode.InternalServerError).json({
+                success: false,
+                message: `Error retrieving thumbnail files: ${error.message}`
+            });
+        }
+    });
 }

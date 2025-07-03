@@ -51,6 +51,9 @@ router.get('/thumbnail/:fileName', musicController.downloadThumbnail);
 // Download lyrics - must come before the :id route
 router.get('/lyrics/:fileName', musicController.downloadLyrics);
 
+// Get list of thumbnail filenames (all or filtered by filename array) - must come before the :id route
+router.post('/thumbnails/list', musicController.getThumbnailList);
+
 // Delete music file - must come before the :id route (protected route)
 router.delete('/file/delete/:filename', protect, authorize(UserRole.TEACHER, UserRole.ADMIN), musicController.deleteMusicFile);
 
