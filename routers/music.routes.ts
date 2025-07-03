@@ -54,6 +54,9 @@ router.get('/lyrics/:fileName', musicController.downloadLyrics);
 // Get list of thumbnail filenames (all or filtered by filename array) - must come before the :id route
 router.get('/thumbnails/list', musicController.getThumbnailList);
 
+// Filter route - public access for searching music
+router.get('/filter', musicController.filterMusic);
+
 // Delete music file - must come before the :id route (protected route)
 router.delete('/file/delete/:filename', protect, authorize(UserRole.TEACHER, UserRole.ADMIN), musicController.deleteMusicFile);
 
@@ -146,9 +149,6 @@ router.post('/upload/thumbnail', musicThumbnailUpload.single('imageFile'), handl
 
 // Lyrics upload route
 router.post('/upload/lyrics', lyricsUpload.single('lyricsFile'), handleUploadErrors, musicController.uploadLyrics);
-
-// Filter route
-router.post('/filter', musicController.filterMusic);
 
 // General routes
 router.post('/', musicController.createMusic);

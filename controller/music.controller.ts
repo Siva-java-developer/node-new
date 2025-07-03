@@ -640,29 +640,65 @@ export class MusicController {
     /**
      * @swagger
      * /v1/music/filter:
-     *   post:
-     *     summary: Filter music by criteria
+     *   get:
+     *     summary: Filter music by criteria with cursor-based pagination
      *     tags: [Music]
-     *     security:
-     *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               language:
-     *                 type: string
-     *               syllabus:
-     *                 type: string
-     *               subject:
-     *                 type: string
-     *               class:
-     *                 type: string
+     *     parameters:
+     *       - in: query
+     *         name: language
+     *         schema:
+     *           type: string
+     *         description: Filter by language
+     *       - in: query
+     *         name: syllabus
+     *         schema:
+     *           type: string
+     *         description: Filter by syllabus
+     *       - in: query
+     *         name: subject
+     *         schema:
+     *           type: string
+     *         description: Filter by subject
+     *       - in: query
+     *         name: class
+     *         schema:
+     *           type: string
+     *         description: Filter by class/grade level
+     *       - in: query
+     *         name: title
+     *         schema:
+     *           type: string
+     *         description: Filter by title (partial match)
+     *       - in: query
+     *         name: cursor
+     *         schema:
+     *           type: string
+     *         description: Cursor for pagination (use nextCursor from previous response)
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           minimum: 1
+     *           maximum: 100
+     *           default: 10
+     *         description: Number of items per page
+     *       - in: query
+     *         name: sortField
+     *         schema:
+     *           type: string
+     *           enum: [_id, title, createdAt, updatedAt]
+     *           default: _id
+     *         description: Field to sort by
+     *       - in: query
+     *         name: sortOrder
+     *         schema:
+     *           type: string
+     *           enum: [asc, desc]
+     *           default: asc
+     *         description: Sort order
      *     responses:
      *       200:
-     *         description: Filtered music entries
+     *         description: Filtered music entries with pagination
      *         content:
      *           application/json:
      *             schema:
@@ -670,18 +706,86 @@ export class MusicController {
      *               properties:
      *                 success:
      *                   type: boolean
+     *                   example: true
      *                 data:
      *                   type: array
      *                   items:
      *                     $ref: '#/components/schemas/Music'
+     *                 pagination:
+     *                   type: object
+     *                   properties:
+     *                     hasNextPage:
+     *                       type: boolean
+     *                       example: true
+     *                     nextCursor:
+     *                       type: string
+     *                       example: "507f1f77bcf86cd799439011"
+     *                     totalCount:
+     *                       type: integer
+     *                       example: 150
+     *                     currentCount:
+     *                       type: integer
+     *                       example: 10
+     *                     limit:
+     *                       type: integer
+     *                       example: 10
+     *                 filters:
+     *                   type: object
+     *                   description: Applied filters
      */
     filterMusic = asyncHandler(async (req: Request, res: Response) => {
-        const filter = req.body;
-        const music = await this.musicService.findMusic(filter);
-        res.status(HTTPStatusCode.Ok).json({
-            success: true,
-            data: music
+        // Extract filter parameters from query
+        const { cursor, limit, sortField, sortOrder, ...filterParams } = req.query;
+        
+        // Build filter object, excluding empty values
+        const filter: Record<string, any> = {};
+        Object.entries(filterParams).forEach(([key, value]) => {
+            if (value && typeof value === 'string' && value.trim() !== '') {
+                // Handle title with partial matching
+                if (key === 'title') {
+                    filter[key] = { $regex: value.trim(), $options: 'i' };
+                } else {
+                    filter[key] = value.trim();
+                }
+            }
         });
+
+        // Parse pagination parameters
+        const pageLimit = Math.min(Math.max(parseInt(limit as string) || 10, 1), 100);
+        const field = (sortField as string) || '_id';
+        const order = (sortOrder as 'asc' | 'desc') || 'asc';
+        
+        // Validate sort field
+        const allowedSortFields = ['_id', 'title', 'createdAt', 'updatedAt'];
+        const validSortField = allowedSortFields.includes(field) ? field : '_id';
+
+        try {
+            const result = await this.musicService.findMusicWithPagination(
+                filter,
+                cursor as string,
+                pageLimit,
+                validSortField,
+                order
+            );
+
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                data: result.data,
+                pagination: {
+                    hasNextPage: result.hasNextPage,
+                    nextCursor: result.nextCursor,
+                    totalCount: result.totalCount,
+                    currentCount: result.data.length,
+                    limit: pageLimit
+                },
+                filters: filter
+            });
+        } catch (error: any) {
+            res.status(HTTPStatusCode.InternalServerError).json({
+                success: false,
+                message: `Error filtering music: ${error.message}`
+            });
+        }
     });
 
     /**

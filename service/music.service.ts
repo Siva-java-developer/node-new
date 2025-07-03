@@ -80,6 +80,30 @@ export class MusicService {
     }
 
     /**
+     * Find music by filter criteria with cursor-based pagination
+     */
+    async findMusicWithPagination(
+        filter: Record<string, any>,
+        cursor?: string,
+        limit: number = 10,
+        sortField: string = '_id',
+        sortOrder: 'asc' | 'desc' = 'asc'
+    ): Promise<{
+        data: IMusic[];
+        hasNextPage: boolean;
+        nextCursor?: string;
+        totalCount: number;
+    }> {
+        return await this.musicRepository.findMusicWithPagination(
+            filter,
+            cursor,
+            limit,
+            sortField,
+            sortOrder
+        );
+    }
+
+    /**
      * Find music by language
      */
     async findByLanguage(language: string): Promise<IMusic[]> {

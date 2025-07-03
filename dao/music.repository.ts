@@ -120,6 +120,70 @@ export class MusicRepository {
     }
 
     /**
+     * Find music by filter criteria with cursor-based pagination
+     */
+    async findMusicWithPagination(
+        filter: Record<string, any>,
+        cursor?: string,
+        limit: number = 10,
+        sortField: string = '_id',
+        sortOrder: 'asc' | 'desc' = 'asc'
+    ): Promise<{
+        data: IMusic[];
+        hasNextPage: boolean;
+        nextCursor?: string;
+        totalCount: number;
+    }> {
+        try {
+            // Build the query
+            let query: Record<string, any> = { ...filter };
+            
+            // Add cursor condition if provided
+            if (cursor) {
+                const cursorCondition = sortOrder === 'asc' 
+                    ? { $gt: cursor }
+                    : { $lt: cursor };
+                query[sortField] = cursorCondition;
+            }
+
+            // Build sort object
+            const sort: Record<string, 1 | -1> = {};
+            sort[sortField] = sortOrder === 'asc' ? 1 : -1;
+
+            // Execute query with limit + 1 to check if there's a next page
+            const results = await Music.find(query)
+                .sort(sort)
+                .limit(limit + 1);
+
+            // Check if there's a next page
+            const hasNextPage = results.length > limit;
+            const data = hasNextPage ? results.slice(0, limit) : results;
+
+            // Get next cursor
+            let nextCursor: string | undefined;
+            if (hasNextPage && data.length > 0) {
+                const lastItem = data[data.length - 1];
+                nextCursor = (lastItem as any)[sortField]?.toString();
+            }
+
+            // Get total count for the filter (without pagination)
+            const totalCount = await Music.countDocuments(filter);
+
+            return {
+                data,
+                hasNextPage,
+                nextCursor,
+                totalCount
+            };
+        } catch (error: any) {
+            throw new CustomError(
+                `Failed to find music with pagination: ${error.message}`,
+                HTTPStatusCode.InternalServerError
+            );
+        }
+    }
+
+    /**
      * Find music by filename
      */
     async findMusicByFilename(filename: string): Promise<IMusic | null> {
