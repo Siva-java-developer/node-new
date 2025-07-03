@@ -719,7 +719,9 @@ export class MusicController {
      *                       example: true
      *                     nextCursor:
      *                       type: string
+     *                       nullable: true
      *                       example: "507f1f77bcf86cd799439011"
+     *                       description: "Cursor for next page, null if no next page"
      *                     totalCount:
      *                       type: integer
      *                       example: 150
@@ -773,7 +775,7 @@ export class MusicController {
                 data: result.data,
                 pagination: {
                     hasNextPage: result.hasNextPage,
-                    nextCursor: result.nextCursor,
+                    nextCursor: result.nextCursor || null,
                     totalCount: result.totalCount,
                     currentCount: result.data.length,
                     limit: pageLimit
