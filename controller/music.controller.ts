@@ -1234,24 +1234,22 @@ export class MusicController {
     /**
      * @swagger
      * /v1/music/thumbnails/list:
-     *   post:
+     *   get:
      *     summary: Get thumbnail files with base64 encoded content (all or filtered by filename array)
      *     tags: [Music]
      *     security:
      *       - bearerAuth: []
-     *     requestBody:
-     *       required: false
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               filenames:
-     *                 type: array
-     *                 items:
-     *                   type: string
-     *                 example: ["thumbnail-1234567890.jpg", "profile-image.png"]
-     *                 description: Array of specific filenames to retrieve (optional - if not provided, returns all)
+     *     parameters:
+     *       - in: query
+     *         name: filenames
+     *         schema:
+     *           type: array
+     *           items:
+     *             type: string
+     *         style: form
+     *         explode: true
+     *         example: ["thumbnail-1234567890.jpg", "profile-image.png"]
+     *         description: Array of specific filenames to retrieve (optional - if not provided, returns all)
      *     responses:
      *       200:
      *         description: Thumbnail files with base64 encoded content
@@ -1305,7 +1303,15 @@ export class MusicController {
      */
     getThumbnailList = asyncHandler(async (req: Request, res: Response) => {
         try {
-            const requestedFilenames = req.body?.filenames || [];
+            // Handle filenames from query parameters (can be a single string or array)
+            let requestedFilenames: string[] = [];
+            if (req.query.filenames) {
+                if (Array.isArray(req.query.filenames)) {
+                    requestedFilenames = req.query.filenames as string[];
+                } else {
+                    requestedFilenames = [req.query.filenames as string];
+                }
+            }
             const thumbnailDir = path.join(__dirname, '..', 'uploads', 'Music', 'thumbnails');
             
             // Check if thumbnails directory exists
