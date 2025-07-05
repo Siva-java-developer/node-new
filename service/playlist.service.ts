@@ -8,12 +8,17 @@ import {
     PlaylistResponseDto,
     PlaylistSummaryDto,
     ReorderSongsDto,
-    PlaylistSearchDto
+    PlaylistSearchDto,
+    GetThumbnailsDto,
+    ThumbnailResponseDto
 } from "../dto/playlist.dto";
 import { IPlaylist } from "../model/playlist.model";
 import CustomError from "../config/custom.error";
 import { HTTPStatusCode } from "../config/enum/http-status.code";
 import { ErrorMessages } from "../config/enum/error-messages.enum";
+import fs from "fs";
+import path from "path";
+import { promisify } from "util";
 
 export class PlaylistService {
     private playlistRepository: PlaylistRepository;
@@ -303,6 +308,57 @@ export class PlaylistService {
     async searchPlaylists(searchParams: PlaylistSearchDto): Promise<PlaylistSummaryDto[]> {
         const playlists = await this.playlistRepository.search(searchParams);
         return playlists.map(playlist => this.mapToSummaryDto(playlist));
+    }
+
+    async getThumbnails(data: GetThumbnailsDto): Promise<ThumbnailResponseDto[]> {
+        const readFileAsync = promisify(fs.readFile);
+        const statAsync = promisify(fs.stat);
+        const results: ThumbnailResponseDto[] = [];
+        
+        // Process each filename
+        for (const filename of data.filenames) {
+            try {
+                // Sanitize the filename to prevent directory traversal
+                const sanitizedFilename = path.basename(filename);
+                const filePath = path.resolve(__dirname, '..', 'uploads', 'Playlists', 'thumbnails', sanitizedFilename);
+                
+                // Check if file exists
+                if (!fs.existsSync(filePath)) {
+                    console.warn(`Thumbnail file not found: ${sanitizedFilename}`);
+                    continue;
+                }
+                
+                // Get file stats
+                const stats = await statAsync(filePath);
+                
+                // Read file content
+                const fileBuffer = await readFileAsync(filePath);
+                const base64Content = fileBuffer.toString('base64');
+                
+                // Determine mime type based on extension
+                const ext = path.extname(filePath).toLowerCase();
+                let mimeType = 'application/octet-stream'; // Default
+                
+                if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+                else if (ext === '.png') mimeType = 'image/png';
+                else if (ext === '.gif') mimeType = 'image/gif';
+                else if (ext === '.webp') mimeType = 'image/webp';
+                
+                // Add to results
+                results.push({
+                    filename: sanitizedFilename,
+                    content: base64Content,
+                    mimeType: mimeType,
+                    mediaType: 'image',
+                    size: stats.size
+                });
+            } catch (error) {
+                console.error(`Error processing thumbnail ${filename}:`, error);
+                // Continue with next file instead of failing the whole request
+            }
+        }
+        
+        return results;
     }
 
     private mapToResponseDto(playlist: IPlaylist): PlaylistResponseDto {

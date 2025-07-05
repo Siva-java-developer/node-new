@@ -91,3 +91,15 @@ export interface PlaylistSearchDto {
     page?: number;
     limit?: number;
 }
+
+export interface GetThumbnailsDto {
+    filenames: string[];
+}
+
+export interface ThumbnailResponseDto {
+    filename: string;
+    content: string;
+    mimeType: string;
+    mediaType: string;
+    size: number;
+}

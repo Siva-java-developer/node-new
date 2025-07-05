@@ -9,7 +9,8 @@ import {
     RemoveSongFromPlaylistDto,
     SharePlaylistDto,
     ReorderSongsDto,
-    PlaylistSearchDto
+    PlaylistSearchDto,
+    GetThumbnailsDto
 } from "../dto/playlist.dto";
 import { HTTPStatusCode } from "../config/enum/http-status.code";
 import CustomError from "../config/custom.error";
@@ -1028,6 +1029,142 @@ export class PlaylistController {
                 res.status(HTTPStatusCode.InternalServerError).json({
                     success: false,
                     message: `Error downloading thumbnail: ${error.message}`
+                });
+            }
+        }
+    };
+
+    /**
+     * @swagger
+     * /v1/playlists/thumbnails:
+     *   get:
+     *     summary: Get multiple playlist thumbnails as base64 encoded content
+     *     tags: [Playlist]
+     *     security:
+     *       - BearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: filenames
+     *         required: false
+     *         schema:
+     *           type: array
+     *           items:
+     *             type: string
+     *         style: form
+     *         explode: true
+     *         description: Array of thumbnail filenames to retrieve (can also be sent in request body)
+     *     requestBody:
+     *       required: false
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               filenames:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Array of thumbnail filenames to retrieve
+     *     responses:
+     *       200:
+     *         description: Thumbnail files retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: true
+     *                 data:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       filename:
+     *                         type: string
+     *                         example: "thumbnail-1751186160714-584250547.webp"
+     *                       content:
+     *                         type: string
+     *                         description: Base64 encoded file content
+     *                         example: "base64encodedcontent..."
+     *                       mimeType:
+     *                         type: string
+     *                         example: "image/webp"
+     *                       mediaType:
+     *                         type: string
+     *                         example: "image"
+     *                       size:
+     *                         type: number
+     *                         example: 886
+     *                 count:
+     *                   type: number
+     *                   example: 1
+     *                 message:
+     *                   type: string
+     *                   example: "Thumbnail files downloaded successfully (filtered by 1 requested filenames)"
+     *       400:
+     *         description: Bad request
+     *       401:
+     *         description: Unauthorized
+     */
+    getThumbnails = async (req: Request, res: Response): Promise<void> => {
+        try {
+            let filenames: string[] = [];
+            
+            // Try to get filenames from query parameters
+            if (req.query.filenames) {
+                const filenamesParam = req.query.filenames;
+                if (Array.isArray(filenamesParam)) {
+                    filenames = filenamesParam as string[];
+                } else if (typeof filenamesParam === 'string') {
+                    // Handle case where it might be a comma-separated string
+                    filenames = filenamesParam.split(',').map(name => name.trim());
+                }
+            }
+            
+            // If not in query params, try to get from request body
+            if (filenames.length === 0 && req.body && req.body.filenames) {
+                if (Array.isArray(req.body.filenames)) {
+                    filenames = req.body.filenames;
+                }
+            }
+            
+            // Validate request
+            if (!filenames || filenames.length === 0) {
+                throw new CustomError(
+                    "Please provide at least one filename in the query parameters or request body",
+                    HTTPStatusCode.BadRequest
+                );
+            }
+            
+            // Limit the number of files that can be requested at once
+            if (filenames.length > 50) {
+                throw new CustomError(
+                    "Too many files requested. Maximum is 50 files per request",
+                    HTTPStatusCode.BadRequest
+                );
+            }
+            
+            const data: GetThumbnailsDto = { filenames };
+            const thumbnails = await this.playlistService.getThumbnails(data);
+            
+            res.status(HTTPStatusCode.Ok).json({
+                success: true,
+                data: thumbnails,
+                count: thumbnails.length,
+                message: `Thumbnail files downloaded successfully (filtered by ${filenames.length} requested filenames)`
+            });
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(HTTPStatusCode.InternalServerError).json({
+                    success: false,
+                    message: `Error retrieving thumbnails: ${error.message}`
                 });
             }
         }
