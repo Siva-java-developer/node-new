@@ -56,7 +56,7 @@ export class MusicController {
      * @swagger
      * /v1/music:
      *   get:
-     *     summary: Get all music entries
+     *     summary: Get all music entries with cursor-based pagination
      *     tags: [Music]
      *     security:
      *       - bearerAuth: []
@@ -67,9 +67,40 @@ export class MusicController {
      *           type: string
      *         required: false
      *         description: Optional user ID to check favorite status for each music
+     *       - in: query
+     *         name: cursor
+     *         schema:
+     *           type: string
+     *         required: false
+     *         description: Cursor for pagination (use the nextCursor value from the previous response to get the next page)
+     *       - in: query
+     *         name: limit
+     *         schema:
+     *           type: integer
+     *           minimum: 1
+     *           maximum: 100
+     *           default: 10
+     *         required: false
+     *         description: Number of items to return per page
+     *       - in: query
+     *         name: sortField
+     *         schema:
+     *           type: string
+     *           default: "_id"
+     *           enum: ["_id", "title", "createdAt", "updatedAt"]
+     *         required: false
+     *         description: Field to sort by
+     *       - in: query
+     *         name: sortOrder
+     *         schema:
+     *           type: string
+     *           default: "asc"
+     *           enum: ["asc", "desc"]
+     *         required: false
+     *         description: Sort order (ascending or descending)
      *     responses:
      *       200:
-     *         description: List of all music entries
+     *         description: List of music entries with pagination metadata
      *         content:
      *           application/json:
      *             schema:
@@ -87,43 +118,147 @@ export class MusicController {
      *                           isFavorite:
      *                             type: boolean
      *                             description: Whether the music is in user's favorites (only when userId is provided)
+     *                 pagination:
+     *                   type: object
+     *                   properties:
+     *                     hasNextPage:
+     *                       type: boolean
+     *                       description: Whether there are more items available
+     *                     nextCursor:
+     *                       type: string
+     *                       description: Cursor to use for the next page (only present if hasNextPage is true)
+     *                       nullable: true
+     *                       example: "60d21b4667d0d8992e610c85"
+     *                     totalCount:
+     *                       type: integer
+     *                       description: Total number of items matching the query (without pagination)
+     *                       example: 150
+     *                     currentCount:
+     *                       type: integer
+     *                       description: Number of items in the current page
+     *                       example: 10
+     *                     limit:
+     *                       type: integer
+     *                       description: Requested limit per page
+     *                       example: 10
      */
     getAllMusic = asyncHandler(async (req: Request, res: Response) => {
+        // Extract pagination parameters from query
+        const cursor = req.query.cursor as string;
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+        const sortField = (req.query.sortField as string) || '_id';
+        const sortOrder = ((req.query.sortOrder as string) || 'asc') as 'asc' | 'desc';
+        
+        // Validate limit to prevent performance issues
+        const validatedLimit = Math.min(Math.max(1, limit), 100);
+        
         // Check if userId is provided in query params for favorite status
         const userId = req.query.userId as string;
         
         if (userId) {
-            // Get all music with favorite status
+            // Get music with favorite status and pagination
             try {
+                // First get paginated music data
+                const paginatedResult = await this.musicService.findMusicWithPagination(
+                    {}, // empty filter to get all music
+                    cursor,
+                    validatedLimit,
+                    sortField,
+                    sortOrder
+                );
+                
+                // Then check favorite status for each music item
                 const musicWithFavorites = await this.musicService.getAllMusicWithFavoriteStatus(userId);
                 
-                // Transform the result to include isFavorite in each music object
-                const transformedMusic = musicWithFavorites.map(item => ({
-                    ...item.music.toObject(),
-                    isFavorite: item.isFavorite
+                // Create a map of music IDs to favorite status for efficient lookup
+                const favoriteStatusMap = new Map(
+                    musicWithFavorites.map(item => [item.music._id.toString(), item.isFavorite])
+                );
+                
+                // Transform the paginated results to include isFavorite
+                const transformedMusic = paginatedResult.data.map(music => ({
+                    ...music.toObject(),
+                    isFavorite: favoriteStatusMap.get(music._id.toString()) || false
                 }));
+                
+                // Prepare pagination info with nextCursor only if there's a next page
+                const paginationInfo = {
+                    hasNextPage: paginatedResult.hasNextPage,
+                    totalCount: paginatedResult.totalCount,
+                    currentCount: paginatedResult.data.length,
+                    limit: validatedLimit
+                };
+                
+                // Only include nextCursor if there are more pages
+                if (paginatedResult.hasNextPage && paginatedResult.nextCursor) {
+                    Object.assign(paginationInfo, { nextCursor: paginatedResult.nextCursor });
+                }
                 
                 res.status(HTTPStatusCode.Ok).json({
                     success: true,
-                    data: transformedMusic
+                    data: transformedMusic,
+                    pagination: paginationInfo
                 });
             } catch (error: any) {
                 if (error instanceof CustomError) {
                     throw error;
                 }
-                // If there's an error with favorite status, fall back to regular music retrieval
-                const music = await this.musicService.getAllMusic();
+                // If there's an error with favorite status, fall back to regular paginated music retrieval
+                const paginatedResult = await this.musicService.findMusicWithPagination(
+                    {}, 
+                    cursor,
+                    validatedLimit,
+                    sortField,
+                    sortOrder
+                );
+                
+                // Prepare pagination info with nextCursor only if there's a next page
+                const paginationInfo = {
+                    hasNextPage: paginatedResult.hasNextPage,
+                    totalCount: paginatedResult.totalCount,
+                    currentCount: paginatedResult.data.length,
+                    limit: validatedLimit
+                };
+                
+                // Only include nextCursor if there are more pages
+                if (paginatedResult.hasNextPage && paginatedResult.nextCursor) {
+                    Object.assign(paginationInfo, { nextCursor: paginatedResult.nextCursor });
+                }
+                
                 res.status(HTTPStatusCode.Ok).json({
                     success: true,
-                    data: music
+                    data: paginatedResult.data,
+                    pagination: paginationInfo
                 });
             }
         } else {
-            // Regular music retrieval without favorite status
-            const music = await this.musicService.getAllMusic();
+            // Regular paginated music retrieval without favorite status
+            const paginatedResult = await this.musicService.findMusicWithPagination(
+                {}, 
+                cursor,
+                validatedLimit,
+                sortField,
+                sortOrder
+            );
+            
+            // Prepare pagination info with nextCursor only if there's a next page
+            const paginationInfo = {
+                hasNextPage: paginatedResult.hasNextPage,
+                totalCount: paginatedResult.totalCount,
+                nextCursor: paginatedResult.nextCursor || null,
+                currentCount: paginatedResult.data.length,
+                limit: validatedLimit
+            };
+            
+            // Only include nextCursor if there are more pages
+            if (paginatedResult.hasNextPage && paginatedResult.nextCursor) {
+                Object.assign(paginationInfo, { nextCursor: paginatedResult.nextCursor });
+            }
+            
             res.status(HTTPStatusCode.Ok).json({
                 success: true,
-                data: music
+                data: paginatedResult.data,
+                pagination: paginationInfo
             });
         }
     });
