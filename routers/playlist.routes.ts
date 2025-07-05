@@ -11,6 +11,7 @@ const playlistController = new PlaylistController();
 router.get('/', playlistController.getPublicPlaylists); // Main playlist listing
 router.get('/search', playlistController.searchPlaylists);
 router.get('/uid/:uid', playlistController.getPlaylistByUid);
+router.get('/thumbnail/:fileName', playlistController.downloadThumbnail);
 
 // Protected routes (authentication required)
 router.use(protect);

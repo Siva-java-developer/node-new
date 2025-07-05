@@ -13,6 +13,8 @@ import {
 } from "../dto/playlist.dto";
 import { HTTPStatusCode } from "../config/enum/http-status.code";
 import CustomError from "../config/custom.error";
+import path from "path";
+import fs from "fs";
 
 export class PlaylistController {
     private playlistService: PlaylistService;
@@ -957,7 +959,79 @@ export class PlaylistController {
         }
     };
 
-
+    /**
+     * @swagger
+     * /v1/playlists/thumbnail/{fileName}:
+     *   get:
+     *     summary: Download a playlist thumbnail
+     *     tags: [Playlist]
+     *     parameters:
+     *       - in: path
+     *         name: fileName
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: The filename of the thumbnail to download
+     *     responses:
+     *       200:
+     *         description: Thumbnail file
+     *         content:
+     *           image/*:
+     *             schema:
+     *               type: string
+     *               format: binary
+     *       404:
+     *         description: Thumbnail not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                   example: false
+     *                 message:
+     *                   type: string
+     *                   example: Thumbnail not found
+     */
+    downloadThumbnail = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const fileName = req.params.fileName;
+            const filePath = path.join(__dirname, '..', 'uploads', 'Playlists', 'thumbnails', fileName);
+            
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                throw new CustomError('Thumbnail not found', HTTPStatusCode.NotFound);
+            }
+            
+            // Set appropriate content type based on file extension
+            const ext = path.extname(fileName).toLowerCase();
+            let contentType = 'image/jpeg'; // Default
+            
+            if (ext === '.png') contentType = 'image/png';
+            else if (ext === '.gif') contentType = 'image/gif';
+            else if (ext === '.webp') contentType = 'image/webp';
+            
+            res.setHeader('Content-Type', contentType);
+            res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+            
+            // Stream the file to the response
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+        } catch (error: any) {
+            if (error instanceof CustomError) {
+                res.status(error.statusCode).json({
+                    success: false,
+                    message: error.message
+                });
+            } else {
+                res.status(HTTPStatusCode.InternalServerError).json({
+                    success: false,
+                    message: `Error downloading thumbnail: ${error.message}`
+                });
+            }
+        }
+    };
 }
 
 
