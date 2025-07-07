@@ -16,12 +16,12 @@ import { IPlaylist } from "../model/playlist.model";
 import CustomError from "../config/custom.error";
 import { HTTPStatusCode } from "../config/enum/http-status.code";
 import { ErrorMessages } from "../config/enum/error-messages.enum";
-import fs from "fs";
-import path from "path";
+import * as fs from "fs";
+import * as path from "path";
 import { promisify } from "util";
 
 export class PlaylistService {
-    private playlistRepository: PlaylistRepository;
+    private readonly playlistRepository: PlaylistRepository;
 
     constructor() {
         this.playlistRepository = new PlaylistRepository();
@@ -315,12 +315,17 @@ export class PlaylistService {
         const statAsync = promisify(fs.stat);
         const results: ThumbnailResponseDto[] = [];
         
+        // Log the request for debugging
+        console.log('getThumbnails called with filenames:', data.filenames);
+        
         // Process each filename
         for (const filename of data.filenames) {
             try {
                 // Sanitize the filename to prevent directory traversal
                 const sanitizedFilename = path.basename(filename);
-                const filePath = path.resolve(__dirname, '..', 'uploads', 'Playlists', 'thumbnails', sanitizedFilename);
+                const filePath = path.join(__dirname, '..', 'uploads', 'Playlists', 'thumbnails', sanitizedFilename);
+                
+                console.log(`Looking for thumbnail at path: ${filePath}`);
                 
                 // Check if file exists
                 if (!fs.existsSync(filePath)) {
@@ -352,12 +357,15 @@ export class PlaylistService {
                     mediaType: 'image',
                     size: stats.size
                 });
+                
+                console.log(`Successfully processed thumbnail: ${sanitizedFilename}`);
             } catch (error) {
                 console.error(`Error processing thumbnail ${filename}:`, error);
                 // Continue with next file instead of failing the whole request
             }
         }
         
+        console.log(`Returning ${results.length} thumbnails`);
         return results;
     }
 

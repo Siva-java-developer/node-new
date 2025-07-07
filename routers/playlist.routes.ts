@@ -12,6 +12,7 @@ router.get('/', playlistController.getPublicPlaylists); // Main playlist listing
 router.get('/search', playlistController.searchPlaylists);
 router.get('/uid/:uid', playlistController.getPlaylistByUid);
 router.get('/thumbnail/:fileName', playlistController.downloadThumbnail);
+router.get('/thumbnails', playlistController.getThumbnails);
 
 // Protected routes (authentication required)
 router.use(protect);

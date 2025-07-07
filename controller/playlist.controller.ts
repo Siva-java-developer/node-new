@@ -72,7 +72,7 @@ export class PlaylistController {
             // Build the complete data object
             const completeData: CreatePlaylistDto = {
                 ...playlistData,
-                thumbnail: thumbnailFile ? thumbnailFile.path : undefined
+                thumbnail: thumbnailFile ? path.basename(thumbnailFile.path) : undefined
             };
 
             const result = await this.playlistService.createPlaylist(completeData, userId);
@@ -450,7 +450,7 @@ export class PlaylistController {
             // Build the complete update data object
             const completeUpdateData: UpdatePlaylistDto = {
                 ...updateData,
-                thumbnail: thumbnailFile ? thumbnailFile.path : undefined
+                thumbnail: thumbnailFile ? path.basename(thumbnailFile.path) : undefined
             };
 
             const result = await this.playlistService.updatePlaylist(playlistId, completeUpdateData, userId);
@@ -1052,19 +1052,7 @@ export class PlaylistController {
      *             type: string
      *         style: form
      *         explode: true
-     *         description: Array of thumbnail filenames to retrieve (can also be sent in request body)
-     *     requestBody:
-     *       required: false
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               filenames:
-     *                 type: array
-     *                 items:
-     *                   type: string
-     *                 description: Array of thumbnail filenames to retrieve
+     *         description: Array of thumbnail filenames to retrieve
      *     responses:
      *       200:
      *         description: Thumbnail files retrieved successfully
@@ -1112,7 +1100,7 @@ export class PlaylistController {
         try {
             let filenames: string[] = [];
             
-            // Try to get filenames from query parameters
+            // Get filenames from query parameters only
             if (req.query.filenames) {
                 const filenamesParam = req.query.filenames;
                 if (Array.isArray(filenamesParam)) {
@@ -1123,17 +1111,10 @@ export class PlaylistController {
                 }
             }
             
-            // If not in query params, try to get from request body
-            if (filenames.length === 0 && req.body && req.body.filenames) {
-                if (Array.isArray(req.body.filenames)) {
-                    filenames = req.body.filenames;
-                }
-            }
-            
             // Validate request
             if (!filenames || filenames.length === 0) {
                 throw new CustomError(
-                    "Please provide at least one filename in the query parameters or request body",
+                    "Please provide at least one filename in the query parameters",
                     HTTPStatusCode.BadRequest
                 );
             }
@@ -1156,6 +1137,7 @@ export class PlaylistController {
                 message: `Thumbnail files downloaded successfully (filtered by ${filenames.length} requested filenames)`
             });
         } catch (error: any) {
+            console.error('Error in getThumbnails:', error);
             if (error instanceof CustomError) {
                 res.status(error.statusCode).json({
                     success: false,
