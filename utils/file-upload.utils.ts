@@ -252,4 +252,23 @@ export const audioUpload = createAudioUpload();
 export const imageUpload = createImageUpload();
 export const musicThumbnailUpload = createMusicThumbnailUpload();
 export const lyricsUpload = createLyricsUpload();
-export const playlistThumbnailUpload = createPlaylistThumbnailUpload();
+
+// Initialize playlist thumbnail upload middleware with error handling
+console.log('Initializing playlist thumbnail upload middleware...');
+let playlistThumbnailUpload;
+try {
+    playlistThumbnailUpload = createPlaylistThumbnailUpload();
+    console.log('Playlist thumbnail upload middleware initialized successfully');
+} catch (error) {
+    console.error('Error initializing playlist thumbnail upload middleware:', error);
+    // Provide a fallback implementation to prevent crashes
+    playlistThumbnailUpload = multer({
+        storage: playlistThumbnailStorage,
+        fileFilter: imageFileFilter,
+        limits: {
+            fileSize: 5 * 1024 * 1024, // 5MB default
+            files: 1
+        }
+    });
+}
+export { playlistThumbnailUpload };
