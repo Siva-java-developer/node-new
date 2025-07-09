@@ -8,10 +8,10 @@ import { handleUploadErrors } from "../middleware/upload.middleware";
 
 // Configure storage for playlist thumbnails
 const playlistThumbnailStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
+    destination: function (req: any, file: any, cb: any) {
         cb(null, path.resolve(__dirname, '../uploads/Playlists/thumbnails'));
     },
-    filename: function (req, file, cb) {
+    filename: function (req: any, file: any, cb: any) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
         cb(null, 'playlist-thumbnail-' + uniqueSuffix + ext);
@@ -19,7 +19,7 @@ const playlistThumbnailStorage = multer.diskStorage({
 });
 
 // File filter for image files
-const imageFileFilter = (req, file, cb) => {
+const imageFileFilter = (req: any, file: any, cb: any) => {
     // Accept only common image file types
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (allowedTypes.includes(file.mimetype)) {
