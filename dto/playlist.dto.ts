@@ -27,7 +27,7 @@ export interface UpdatePlaylistWithFileDto {
 }
 
 export interface AddSongToPlaylistDto {
-    songId: string;
+    songIds: string[];
 }
 
 export interface RemoveSongFromPlaylistDto {

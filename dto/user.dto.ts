@@ -105,6 +105,7 @@ export class FavoriteMusicDTO {
 // DTO for favorite music response
 export class FavoriteMusicResponseDTO {
     id!: string;
+    title!: string;
     language!: string;
     syllabus!: string;
     subject!: string;
@@ -118,6 +119,7 @@ export class FavoriteMusicResponseDTO {
     static toResponse(music: IMusic): FavoriteMusicResponseDTO {
         const dto = new FavoriteMusicResponseDTO();
         dto.id = music._id.toString();
+        dto.title = music.title;
         dto.language = music.language;
         dto.syllabus = music.syllabus;
         dto.subject = music.subject;
