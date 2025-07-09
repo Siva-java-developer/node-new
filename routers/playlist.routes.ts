@@ -53,7 +53,7 @@ router.get('/thumbnails', playlistController.getThumbnails);
 router.use(protect);
 
 // Playlist CRUD operations that require authentication
-router.post('/', playlistThumbnailUpload.single('thumbnail'), handleUploadErrors, playlistController.createPlaylist);
+router.post('/', playlistThumbnailUpload?.single('thumbnail'), handleUploadErrors, playlistController.createPlaylist);
 router.get('/my', playlistController.getUserPlaylists);
 router.get('/accessible', playlistController.getAccessiblePlaylists);
 router.get('/shared', playlistController.getSharedPlaylists);
