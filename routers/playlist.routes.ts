@@ -5,6 +5,7 @@ import multer from 'multer';
 import path from 'path';
 import { handleUploadErrors } from "../middleware/upload.middleware";
 
+
 // Configure storage for playlist thumbnails
 const playlistThumbnailStorage = multer.diskStorage({
     destination: function (req, file, cb) {
