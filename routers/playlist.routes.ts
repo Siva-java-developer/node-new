@@ -1,8 +1,42 @@
 import { Router } from "express";
 import { PlaylistController } from "../controller/playlist.controller";
 import { protect } from "../middleware/auth.middleware";
-import { playlistThumbnailUpload } from "../utils/file-upload.utils";
+import multer from 'multer';
+import path from 'path';
 import { handleUploadErrors } from "../middleware/upload.middleware";
+
+// Configure storage for playlist thumbnails
+const playlistThumbnailStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.resolve(__dirname, '../uploads/Playlists/thumbnails'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'playlist-thumbnail-' + uniqueSuffix + ext);
+    }
+});
+
+// File filter for image files
+const imageFileFilter = (req, file, cb) => {
+    // Accept only common image file types
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only image files are allowed (JPEG, PNG, GIF, WEBP)'));
+    }
+};
+
+// Create the upload middleware directly in this file
+const playlistThumbnailUpload = multer({
+    storage: playlistThumbnailStorage,
+    fileFilter: imageFileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB default
+        files: 1
+    }
+});
 
 const router = Router();
 const playlistController = new PlaylistController();

@@ -253,23 +253,16 @@ export const imageUpload = createImageUpload();
 export const musicThumbnailUpload = createMusicThumbnailUpload();
 export const lyricsUpload = createLyricsUpload();
 
-// Initialize playlist thumbnail upload middleware with error handling
-console.log('Initializing playlist thumbnail upload middleware...');
-let playlistThumbnailUploadInstance;
-try {
-    playlistThumbnailUploadInstance = createPlaylistThumbnailUpload();
-    console.log('Playlist thumbnail upload middleware initialized successfully');
-} catch (error) {
-    console.error('Error initializing playlist thumbnail upload middleware:', error);
-    // Provide a fallback implementation to prevent crashes
-    playlistThumbnailUploadInstance = multer({
-        storage: playlistThumbnailStorage,
-        fileFilter: imageFileFilter,
-        limits: {
-            fileSize: 5 * 1024 * 1024, // 5MB default
-            files: 1
-        }
-    });
-}
-// Export directly to ensure it's properly initialized
-export const playlistThumbnailUpload = playlistThumbnailUploadInstance;
+// Create and export the playlist thumbnail upload middleware directly
+console.log('Creating playlist thumbnail upload middleware...');
+export const playlistThumbnailUpload = multer({
+    storage: playlistThumbnailStorage,
+    fileFilter: imageFileFilter,
+    limits: {
+        fileSize: config.fileUpload.maxSize || 5 * 1024 * 1024, // Use config or default to 5MB
+        files: 1,
+        fieldNameSize: 100,
+        fieldSize: 1024 * 1024 // 1MB
+    }
+});
+console.log('Playlist thumbnail upload middleware created successfully');
