@@ -26,7 +26,7 @@ A RESTful API for managing user data built with Express, TypeScript, and MongoDB
 3. Create a `.env` file in the root directory with the following variables:
    ```
    DATABASE_URL=mongodb://localhost:27017/user-management
-   PORT=8080
+   PORT=8111
    ```
 
 ### Running the Application
@@ -35,14 +35,14 @@ A RESTful API for managing user data built with Express, TypeScript, and MongoDB
 npm run dev
 ```
 
-The server will start on port 8080 (or the port specified in your .env file).
+The server will start on port 8111 (or the port specified in your .env file).
 
 ## API Documentation
 
 Swagger documentation is available at:
 
 ```
-http://localhost:8080/api-docs
+http://localhost:8111/api-docs
 ```
 
 ## API Endpoints

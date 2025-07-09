@@ -20,7 +20,7 @@ if (fs.existsSync(envPath)) {
 
 // DECLARE ALL VARIABLES
 const MONGO_URL = process.env.DATABASE_URL || 'mongodb://localhost:27017/user-management';
-const SERVER_PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
+const SERVER_PORT = process.env.PORT ? Number(process.env.PORT) : 8111;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
