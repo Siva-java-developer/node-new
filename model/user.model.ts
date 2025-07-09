@@ -71,6 +71,7 @@ export enum UserRole {
  *           description: Array of music IDs that the user has favorited
  */
 export interface IUser extends Document {
+    _id:string;
     firstName: string;
     lastName: string;
     username: string;
