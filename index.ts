@@ -36,8 +36,7 @@ const swaggerOptions = {
   explorer: true,
   swaggerOptions: {
     persistAuthorization: true
-  },
-  customJS: ['/js/swagger-fetch-button.js'] // Add our custom JavaScript
+  }
 };
 
 // Standard Swagger UI
@@ -65,7 +64,26 @@ app.get('/', (req, res) => {
 
 // Serve Swagger JSON
 app.get('/api-docs/swagger.json', (req, res) => {
-  res.json(specs);
+  try {
+    res.json(specs);
+  } catch (error) {
+    console.error('Error serving swagger.json:', error);
+    res.status(500).json({ error: 'Failed to generate API documentation' });
+  }
+});
+
+// Debug endpoint for swagger specs
+app.get('/debug/swagger', (req, res) => {
+  try {
+    res.json({
+      message: 'Swagger specs generated successfully',
+      pathsCount: Object.keys(specs.paths || {}).length,
+      components: Object.keys(specs.components || {}).length
+    });
+  } catch (error) {
+    console.error('Error in debug endpoint:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Test route

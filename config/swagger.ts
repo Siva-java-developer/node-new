@@ -1,6 +1,5 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import { version } from '../package.json';
-import { title } from 'process';
 
 // Define the OpenAPI document structure
 interface OpenAPIDocument {
@@ -33,13 +32,13 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: '/',
+        url: 'http://localhost:8111',
         description: 'Development server'
       },
-        {
-    url: 'https://tunefor2.com/edutune/',
-    description: 'Production server'
-  },
+      {
+        url: 'https://tunefor2.com/edutune/',
+        description: 'Production server'
+      }
     ],
     components: {
       securitySchemes: {
@@ -330,8 +329,11 @@ const options: swaggerJsdoc.Options = {
       }
     }
   },
-  apis: ['./routers/*.ts', './controller/*.ts', './model/*.ts'],
-  consumes: ['multipart/form-data']
+  apis: [
+    './routers/*.ts',
+    './controller/*.ts',
+    './model/*.ts'
+  ]
 };
 
 const generatedSpecs: OpenAPIDocument = swaggerJsdoc(options) as OpenAPIDocument;
