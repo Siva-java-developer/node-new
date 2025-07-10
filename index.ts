@@ -153,7 +153,7 @@ app.use(express.urlencoded({ extended: true })); // For parsing application/x-ww
 // Serve static files from the uploads directory and its subdirectories
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const basePath = process.env.NODE_ENV === 'production' ? '/edu-tune' : '';
+const basePath = process.env.NODE_ENV === 'development' ? '/edutune' : '';
 
 // Serve static files from the public directory
 app.use('/public', express.static(path.join(__dirname, 'public')));
