@@ -35,7 +35,11 @@ const options: swaggerJsdoc.Options = {
       {
         url: '/',
         description: 'Development server'
-      }
+      },
+        {
+    url: 'https://tunefor2.com/edutune/',
+    description: 'Production server'
+  },
     ],
     components: {
       securitySchemes: {
