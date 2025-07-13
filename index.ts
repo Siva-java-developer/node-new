@@ -19,11 +19,21 @@ import { exceptionHandler } from './config/exception.handler';
 import { pageNotFoundExceptionHandler } from './config/page-not-found.exception';
 
 const app = express();
+const allowedOrigins = ["http://localhost:5173", "*"];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
   })
 );
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
