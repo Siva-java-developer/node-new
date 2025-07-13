@@ -63,7 +63,7 @@ app.get('/', (req, res) => {
 });
 
 // Serve Swagger JSON
-app.get('/api-docs/swagger.json', (req, res) => {
+app.get('https://tunefor2.com/edutune/api-docs/swagger.json', (req, res) => {
   try {
     res.json(specs);
   } catch (error) {
