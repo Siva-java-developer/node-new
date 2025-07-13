@@ -40,7 +40,7 @@ const swaggerOptions = {
 };
 
 // Standard Swagger UI
-app.use('https://tunefor2.com/edutune/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 
 // Custom Swagger UI with fetch button
 app.get('/api-docs-custom', (req, res) => {
@@ -63,7 +63,7 @@ app.get('/', (req, res) => {
 });
 
 // Serve Swagger JSON
-app.get('https://tunefor2.com/edutune/api-docs/swagger.json', (req, res) => {
+app.get('/api-docs/swagger.json', (req, res) => {
   try {
     res.json(specs);
   } catch (error) {
@@ -71,6 +71,7 @@ app.get('https://tunefor2.com/edutune/api-docs/swagger.json', (req, res) => {
     res.status(500).json({ error: 'Failed to generate API documentation' });
   }
 });
+
 
 // Debug endpoint for swagger specs
 app.get('/debug/swagger', (req, res) => {

@@ -31,7 +31,7 @@ const swaggerOptions = {
     customJS: ['/js/swagger-fetch-button.js'] // Add our custom JavaScript
 };
 // Standard Swagger UI
-app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.specs, swaggerOptions));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerOptions));
 // Custom Swagger UI with fetch button
 app.get('/api-docs-custom', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, 'public', 'swagger-ui-custom.html'));
@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
 });
 // Serve Swagger JSON
 app.get('/api-docs/swagger.json', (req, res) => {
-    res.json(swagger_1.specs);
+  res.json(specs);
 });
 // Test route
 app.get('/test', (req, res) => {
