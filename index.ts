@@ -2,6 +2,8 @@ import 'reflect-metadata';
 
 import express from 'express';
 import mongoose from 'mongoose';
+// ✅ Add this line RIGHT AFTER importing mongoose
+mongoose.set('strictQuery', true); // or false if you prefer the future default behavior
 import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import config from './config';
