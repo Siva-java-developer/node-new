@@ -7,7 +7,7 @@ exports.getDashboardCounts = async (req, res) => {
   try {
     // Get month from URL parameter or query parameter
     const month = req.params.month || req.query.month;
-
+   
     let dateFilter = {};
 
     // Validate and construct date range if month is given
