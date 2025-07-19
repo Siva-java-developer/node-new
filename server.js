@@ -42,12 +42,12 @@ connectDB();
 app.use('/uploads', express.static('uploads'));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+app.use("/api", categoryRoutes);
 app.use("/api", userRoutes);
 app.use("/api", offerRoutes);
 app.use("/api", careersRoutes);
 app.use("/api", courseRoutes);
 app.use("/api", lessonsRoutes);
-app.use("/api", categoryRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api", contactRoutes);

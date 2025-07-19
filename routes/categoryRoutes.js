@@ -14,6 +14,7 @@ const upload = require("../config/multer");
 router.post("/category", authMiddleware, upload.single("image"), createCategory); 
 router.put("/category/:id", authMiddleware, upload.single("image"), updateCategory);
 router.delete("/category/:id", authMiddleware, deleteCategory);
-router.get("/category", authMiddleware, getCategory);  //GET /api/category?type=workShop//  /GET /api/category?type=internShip
+router.get("/category", getCategory);
+ //GET /api/category?type=workShop//  /GET /api/category?type=internShip
 
 module.exports = router;
