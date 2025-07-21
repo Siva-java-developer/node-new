@@ -43,6 +43,7 @@ app.use('/uploads', express.static('uploads'));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api", categoryRoutes);
+app.use("/api", reviewRoutes);
 app.use("/api", userRoutes);
 app.use("/api", offerRoutes);
 app.use("/api", careersRoutes);
@@ -51,7 +52,6 @@ app.use("/api", lessonsRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api", contactRoutes);
-app.use("/api", certificationMailsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
