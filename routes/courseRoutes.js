@@ -13,7 +13,7 @@ const {
   downloadFileByName
 } = require("../controllers/courseController");
 const auth = require("../middleware/auth");
-router.use(auth);
+// router.use(auth);
 
 // Public routes (no authentication required)
 /**
@@ -24,12 +24,12 @@ router.use(auth);
  *     tags: 
  *        - Courses   
  */
-router.post("/courses", upload.single('fileupload'), createCourse);                    
+router.post("/courses",auth, upload.single('fileupload'), createCourse);                    
 router.get("/courses", getAllCourses);                    
 router.get("/courses/:id", getCourseById);                
-router.put("/courses/:id", upload.single('fileupload'), updateCourse);                 
-router.patch("/courses/:id/status", toggleCourseStatus);  
-router.delete("/courses/:id", deleteCourse);              
+router.put("/courses/:id",auth, upload.single('fileupload'), updateCourse);                 
+router.patch("/courses/:id/status",auth, toggleCourseStatus);  
+router.delete("/courses/:id",auth, deleteCourse);              
 router.get("/courses/status/:status", getCoursesByStatus);
 router.get("/courses/:id/download", downloadCourseFile);
 router.get("/files/:filename", downloadFileByName); 

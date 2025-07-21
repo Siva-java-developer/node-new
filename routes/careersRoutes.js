@@ -13,7 +13,7 @@ const authMiddleware = require('../middleware/auth');
 router.post("/careers",authMiddleware, createCareeers);
 router.put("/careers/:id",authMiddleware, updateCareers);
 router.delete("/careers/:id",authMiddleware, deleteCareers);
-router.get("/careers",authMiddleware, getCareers);
+router.get("/careers", getCareers);
 router.put("/careersstatus/:id",authMiddleware,updateCareersstatus);
 
 module.exports = router;

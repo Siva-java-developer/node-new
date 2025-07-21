@@ -16,7 +16,7 @@ const auth = require("../middleware/auth");
  *        - Offers   
  */
 router.post("/offers",auth, createOffer);        
-router.get("/offers",auth, getOffers);    
+router.get("/offers", getOffers);    
 router.put("/offers/:id",auth, updateOffer);  
 router.delete("/offers/:id",auth, deleteOffer);  
 
