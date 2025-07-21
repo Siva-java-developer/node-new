@@ -17,6 +17,8 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const certificationMailsRoutes = require('./routes/emailRoutes');
+
 
 dotenv.config();
 
@@ -40,15 +42,16 @@ connectDB();
 app.use('/uploads', express.static('uploads'));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+app.use("/api", categoryRoutes);
 app.use("/api", userRoutes);
 app.use("/api", offerRoutes);
 app.use("/api", careersRoutes);
 app.use("/api", courseRoutes);
 app.use("/api", lessonsRoutes);
-app.use("/api", categoryRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api", contactRoutes);
+app.use("/api", certificationMailsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
