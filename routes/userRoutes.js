@@ -102,13 +102,13 @@ router.post("/forgot-password", forgotPassword);
  */
 router.post("/reset-password", resetPassword);
 
-// Protected routes
-router.get("/users", auth, async (req, res) => {
+// Public GET routes (no authentication required)
+router.get("/users", async (req, res) => {
   const users = await User.find();
   res.json(users);
 });
 
-router.get("/user/:id", auth, async (req, res) => {
+router.get("/user/:id", async (req, res) => {
   const user = await User.findById(req.params.id);
   res.json(user);
 });

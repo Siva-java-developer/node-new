@@ -11,15 +11,14 @@ const {
   getAllLessonsByCourse,
 } = require('../controllers/lessonsController');
 
-// ✅ Apply auth middleware to all routes below
-router.use(auth);
+// Protected routes (require authentication)
+router.post('/lessons', auth, createLessonsForCourse);
+router.put('/lessons/:lessonsId', auth, updateLessons);
+router.delete('/lessons/:lessonsId', auth, deleteLessons);
 
-// All routes below require valid JWT
-router.post('/lessons', createLessonsForCourse);
+// Public GET routes (no authentication required)
 router.get('/lessons', getAllLessons);
 router.get('/lessons/:lessonsId', getLessonsById);
-router.put('/lessons/:lessonsId', updateLessons);
-router.delete('/lessons/:lessonsId', deleteLessons);
 router.get('/lessons/course/:courseId', getAllLessonsByCourse);
 
 module.exports = router;
