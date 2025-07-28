@@ -9,12 +9,12 @@ const sendResetPasswordMail = async (to, name, resetLink) => {
     },
   });
 
-  const subject = "Password Reset Request";
+  const subject = "Skill Up Tech Solutions - Password Reset Request";
   const html = `
     <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; background-color: #f9f9f9;">
       <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #333; margin: 0;">🔐 Password Reset</h1>
+          <h1 style="color: #333; margin: 0;">Password Reset</h1>
         </div>
         
         <h2 style="color: #dc2626; margin-bottom: 20px;">Password Reset Request</h2>
@@ -22,7 +22,7 @@ const sendResetPasswordMail = async (to, name, resetLink) => {
         <p style="font-size: 16px; line-height: 1.6; color: #333;">Hi <strong>${name}</strong>,</p>
         
         <p style="font-size: 16px; line-height: 1.6; color: #333;">
-          We received a request to reset your password for your <strong>Packaging Repository Tool</strong> account.
+          We received a request to reset your password for your <strong>Skill Up Tech Solutions</strong> account.
         </p>
         
         <p style="font-size: 16px; line-height: 1.6; color: #333;">
@@ -49,7 +49,7 @@ const sendResetPasswordMail = async (to, name, resetLink) => {
         
         <div style="text-align: center;">
           <p style="color: #666; font-size: 12px; margin: 0;">
-            This is an automated message from <strong>Packaging Repository Tool</strong>
+            This is an automated message from <strong>Skill Up Tech Solutions</strong>
           </p>
           <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">
             Please do not reply to this email.
@@ -60,7 +60,7 @@ const sendResetPasswordMail = async (to, name, resetLink) => {
   `;
 
   await transporter.sendMail({
-    from: `"Packaging Repository Tool" <${process.env.EMAIL_USER}>`,
+    from: `"Skill Up Tech Solutions" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html,
