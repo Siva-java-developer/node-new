@@ -160,7 +160,7 @@ exports.forgotPassword = async (req, res) => {
     });
     
     // Create reset link pointing to your frontend
-    const frontendResetUrl = `${process.env.FRONTEND_URL}?token=${resetToken}`;
+    const frontendResetUrl = `${"https://frontend-admin-panel-ecru.vercel.app/#/reset-password"}?token=${resetToken}`;
 
     // Send email with reset link
     await sendResetPasswordMail(user.email, user.name, frontendResetUrl);
