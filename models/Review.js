@@ -9,6 +9,10 @@ const reviewSchema = new mongoose.Schema({
   review: {
     type: String,
     required: true
+  },
+  name: {
+    type: String,
+    required: true
   }
 }, { timestamps: true });
 

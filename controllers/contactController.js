@@ -4,7 +4,7 @@ const { sendCourseInquiryMail } = require("../utils/sendCourseInquiryMail");
 // Contact Us API
 const contactUs = async (req, res) => {
   try {
-    const { email, contactNumber, description } = req.body;
+    const { email, contactNumber, description, name } = req.body;
 
     // Validate required fields (email and contactNumber only)
     if (!email || !contactNumber) {
@@ -15,6 +15,11 @@ const contactUs = async (req, res) => {
     if (!email || !contactNumber) {
       return res.status(400).json({ 
         message: "contactNumber field is required" 
+      });
+    }
+    if (!name) {
+      return res.status(400).json({
+        message: "name field is required"
       });
     }
 
@@ -55,7 +60,7 @@ const contactUs = async (req, res) => {
     }
 
     // Send email to admin
-    await sendContactMail(email, contactNumber.trim(), description ? description.trim() : null);
+    await sendContactMail(email, contactNumber.trim(), description ? description.trim() : null, name);
 
     // Success response
     res.status(200).json({

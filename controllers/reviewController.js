@@ -3,8 +3,8 @@ const Review = require('../models/Review');
 // Create Review
 exports.createReview = async (req, res) => {
   try {
-    const { email, review } = req.body;
-    const newReview = new Review({ email, review });
+    const { email, review, name } = req.body;
+    const newReview = new Review({ email, review, name });
     const saved = await newReview.save();
     res.status(201).json({ message: 'Review created successfully', data: saved });
   } catch (error) {

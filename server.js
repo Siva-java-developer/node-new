@@ -19,6 +19,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const certificationMailsRoutes = require('./routes/emailRoutes');
 const careerApplicationRoutes = require('./routes/careerApplicationRoutes');
+const categoryMailRoutes = require('./routes/categoryMailRoutes');
 
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use("/api", dashboardRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api", contactRoutes);
 app.use("/api", careerApplicationRoutes);
+app.use("/api", categoryMailRoutes);
 
 const PORT = process.env.PORT || 5000;
 
