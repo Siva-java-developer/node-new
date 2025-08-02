@@ -107,7 +107,6 @@ const sendCourseInquiryMail = async (name, email, mobile, courseName, attachment
                 <li><strong>Follow up with the student</strong> within 24 hours</li>
                 <li><strong>Contact via:</strong> ${email} or ${mobile}</li>
                 <li><strong>Course:</strong> ${courseName}</li>
-                <li><strong>Inquiry received:</strong> ${new Date().toLocaleString()}</li>
               </ul>
             </div>
           </div>
