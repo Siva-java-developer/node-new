@@ -123,7 +123,6 @@ const sendCategoryMail = async (name, email, mobile, categoryName, categoryType)
                 <li><strong>Contact via:</strong> ${email} or ${mobile}</li>
                 <li><strong>Category:</strong> ${categoryName}</li>
                 <li><strong>Type:</strong> ${categoryType}</li>
-                <li><strong>Inquiry received:</strong> ${new Date().toLocaleString()}</li>
                 <li><strong>Next steps:</strong> Provide category information and course details</li>
               </ul>
             </div>
